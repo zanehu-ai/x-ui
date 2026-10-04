@@ -63,19 +63,6 @@ a,button,label,input {
   white-space:nowrap;
 }
 
-.xui-visually-hidden {
-  position:absolute;
-  width:1px;
-  height:1px;
-  padding:0;
-  margin:-1px;
-  overflow:hidden;
-  clip:rect(0,0,0,0);
-  clip-path:inset(50%);
-  white-space:nowrap;
-  border:0;
-}
-
 :lang(zh) em,:lang(zh) i {
   font-style:normal;
 }
@@ -1045,11 +1032,14 @@ html[data-theme-pref="light"] .xui-theme-toggle__light,html[data-theme-pref="dar
   text-transform:lowercase;
   line-height:1.2;
   border-bottom:var(--xui-border-width-emphasis) solid var(--xui-color-accent-text);
+  overflow-wrap:anywhere;
 }
 
+/* --lg: no mid-word breaks at display size on tablet/desktop (fixed 2026-10-04 22:24); break anywhere only below 768px */
 .xui-contact--lg .xui-contact__mail {
   font-size:var(--xui-type-display-lg);
   line-height:1.05;
+  overflow-wrap:normal;
 }
 
 @media (max-width:767px) {
@@ -1237,7 +1227,8 @@ html[data-theme-pref="light"] .xui-theme-toggle__light,html[data-theme-pref="dar
   border-color:var(--xui-color-accent-text);
 }
 
-.xui-copy-button__status {
+/* visually hidden live regions: copy status + theme announce (xui.js) */
+.xui-copy-button__status,.xui-live {
   position:absolute;
   width:1px;
   height:1px;

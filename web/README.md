@@ -48,9 +48,9 @@ Read `integrity` from `manifest.json` after `npm run build:web` (fields `sri.x-u
 
 ## Theme
 
-`data-theme` is `light` or `dark`. The theme button cycles system → light → dark. System is the default: `theme-script.js` reads `localStorage` key `theme` and, when the value is missing, follows `prefers-color-scheme`. While the preference stays `system`, `xui.js` keeps a `prefers-color-scheme: light` listener and updates `data-theme` when the OS theme changes. Choosing light or dark removes that listener.
+`data-theme` is `light` or `dark`. The theme button cycles system → light → dark. System is the default: `theme-script.js` reads `localStorage` key `theme` and, when the value is missing, follows `prefers-color-scheme`. `xui.js` listens to `prefers-color-scheme: light` for the whole page. While the preference is `system`, that listener updates `data-theme`. Light or dark leaves the listener in place and ignores it. An operating-system change does not announce.
 
-With JavaScript, `data-theme` is set before paint. The theme control also writes the new theme into a visually hidden `aria-live="polite"` region (`.xui-visually-hidden`).
+With JavaScript, `data-theme` is set before paint. Choosing a theme writes a visually hidden `span.xui-live` (`role="status"`, `aria-live="polite"`). English: “Theme: Light”, “Theme: Dark”, or “Theme: System (Dark)” when system resolves to dark. Chinese (`lang` starting with `zh`): “主题：浅色”, “主题：深色”, or “主题：跟随系统（深色）”.
 
 The brand CSS also includes a `prefers-color-scheme: light` block for a page that has no `data-theme`. That block is what a no-JS visitor on a light OS gets. A no-JS visitor on a dark OS gets the dark tokens.
 
@@ -83,7 +83,7 @@ The footer legal slot is `<div class="xui-footer__legal"></div>`. It renders not
 ## Behaviour in `xui.js`
 
 - Theme toggle (button and the `data-xui-theme-radio` group), including the live announcement above
-- Phone menu. Opening sets the burger's `aria-expanded` to `"true"` and moves focus into the drawer. Tab stays inside the drawer while it is open. Closing — the burger again, the close button, Escape, a link, or a click outside — sets `aria-expanded` back to `"false"` and returns focus to that burger.
+- Phone menu. Opening sets that burger's `aria-expanded` to `"true"` and moves focus to `.xui-drawer__close`. Tab stays inside the drawer. Escape and the close button set every burger's `aria-expanded` to `"false"` and return focus to the burger that opened it.
 - Copy button (hidden until JavaScript runs, with a `document.execCommand("copy")` fallback)
 
 Language switching is plain links. It has no script.

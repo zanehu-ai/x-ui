@@ -111,7 +111,7 @@ for (const needle of [
   '.xui-hero--island',
   'prefers-reduced-motion',
   ':focus-visible',
-  '.xui-visually-hidden',
+  '.xui-live',
   'SIL Open Font License, Version 1.1',
 ]) {
   if (!css.includes(needle)) fail(`x-ui.css is missing ${needle}`)
@@ -122,12 +122,15 @@ if (css.includes('.xui-band') || css.includes('linear-gradient(transparent 58%')
 const contactSrc = fs.readFileSync(path.join(repoRoot, 'web/components.css'), 'utf8')
 const contact = contactSrc.slice(contactSrc.indexOf('/* 15b ContactBlock'), contactSrc.indexOf('/* 15c ListRow'))
 const anywhere = contact.match(/overflow-wrap:anywhere/g) ?? []
-if (anywhere.length !== 1 || !/@media \(max-width:767px\) \{\s*\.xui-contact--lg \.xui-contact__mail \{[^}]*overflow-wrap:anywhere/.test(contact)) {
-  fail('overflow-wrap:anywhere must apply only to .xui-contact--lg below 768px')
+if (anywhere.length !== 2 || !/@media \(max-width:767px\) \{\s*\.xui-contact--lg \.xui-contact__mail \{[^}]*overflow-wrap:anywhere/.test(contact)) {
+  fail('large contact email must use overflow-wrap:anywhere only below 768px')
+}
+if (!/\.xui-contact--lg \.xui-contact__mail \{[^}]*overflow-wrap:normal/.test(contact)) {
+  fail('wide .xui-contact--lg email must set overflow-wrap:normal')
 }
 const builtLg = css.match(/\.xui-contact--lg \.xui-contact__mail\{[^}]*\}/g) ?? []
-if (!builtLg.some((rule) => rule.includes('overflow-wrap:anywhere')) || !builtLg.some((rule) => !rule.includes('overflow-wrap'))) {
-  fail('built css did not keep the wide large-email rule free of overflow-wrap:anywhere')
+if (!builtLg.some((rule) => rule.includes('overflow-wrap:anywhere')) || !builtLg.some((rule) => rule.includes('overflow-wrap:normal'))) {
+  fail('built css did not keep normal wrap for the wide large email and anywhere below 768px')
 }
 if ((css.match(/SIL Open Font License, Version 1.1/g) ?? []).length < 5) fail('x-ui.css is missing an OFL license')
 if (!css.includes('/*!')) fail('x-ui.css font license comment is not a /*! preserved comment')
@@ -152,7 +155,7 @@ manifest.licenses?.forEach((entry, index) => {
   }
 })
 
-for (const error of checkMenuScript(path.join(distDir, 'xui.js'))) fail(error)
+for (const error of await checkMenuScript(path.join(distDir, 'xui.js'))) fail(error)
 
 const hexes = tokenHexMap(tokens)
 const badCss = '.btn { color: #000000; }\n.xui-btn { padding: 1px; }\n:root { --brand-color: red; }\n'

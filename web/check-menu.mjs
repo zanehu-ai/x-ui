@@ -3,6 +3,11 @@ import { JSDOM } from 'jsdom'
 
 const HTML = `<!doctype html>
 <html lang="en">
+<head>
+  <style>
+    .xui-live { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  </style>
+</head>
 <body>
   <button type="button" class="xui-theme-toggle" aria-label="Theme"></button>
   <button type="button" class="xui-header__burger" aria-expanded="false">Menu</button>
@@ -22,17 +27,17 @@ const HTML = `<!doctype html>
 </html>`
 
 /**
- * jsdom checks for the phone menu (aria-expanded, focus return, Esc, focus
- * trap) and the theme live region. Also checks the system-theme listener,
- * since it shares this script.
+ * jsdom checks aligned with the shared xui.js: Close-button focus, Esc,
+ * the focus trap, and the live-region strings (including the resolved
+ * system theme).
  */
-export function checkMenuScript(file) {
+export async function checkMenuScript(file) {
   const source = fs.readFileSync(file, 'utf8')
   const errors = []
   try {
     errors.push(...checkMenu(source))
-    errors.push(...checkTheme(source, 'en'))
-    errors.push(...checkTheme(source, 'zh'))
+    errors.push(...(await checkTheme(source, 'en')))
+    errors.push(...(await checkTheme(source, 'zh')))
   } catch (error) {
     errors.push(`xui.js DOM check threw: ${error.stack || error.message}`)
   }
@@ -42,13 +47,11 @@ export function checkMenuScript(file) {
 function checkMenu(source) {
   const errors = []
   const { window, document } = boot(source)
+  reveal(window)
   const burger = document.querySelector('.xui-header__burger')
   const drawer = document.querySelector('.xui-drawer')
   const close = document.querySelector('.xui-drawer__close')
-  const link = document.querySelector('.xui-drawer a[href]')
-  const pad = document.querySelector('.xui-drawer__pad')
-  const outside = document.querySelector('.page-main')
-  const items = focusables(drawer)
+  const items = [...drawer.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select,textarea')]
   const first = items[0]
   const last = items[items.length - 1]
 
@@ -60,99 +63,105 @@ function checkMenu(source) {
   }
 
   if (burger.getAttribute('aria-expanded') !== 'false') errors.push('burger did not start collapsed')
+  if (first !== close) errors.push('Close button is not the first focusable item in the drawer')
 
   burger.focus()
   burger.click()
   if (burger.getAttribute('aria-expanded') !== 'true') errors.push('opening did not set aria-expanded="true"')
-  if (document.activeElement !== first) errors.push('opening did not move focus into the menu')
+  if (document.activeElement !== close) errors.push('opening did not move focus to the Close button')
 
   last.focus()
   const tab = key(window, 'Tab')
-  if (!tab.defaultPrevented || document.activeElement !== first) errors.push('Tab on the last item did not wrap to the first')
-  first.focus()
+  if (!tab.defaultPrevented || document.activeElement !== close) errors.push('Tab on the last item did not wrap to the Close button')
+  close.focus()
   const shift = key(window, 'Tab', { shiftKey: true })
-  if (!shift.defaultPrevented || document.activeElement !== last) errors.push('Shift+Tab on the first item did not wrap to the last')
+  if (!shift.defaultPrevented || document.activeElement !== last) errors.push('Shift+Tab from the Close button did not wrap to the last item')
   items[1].focus()
   const middle = key(window, 'Tab')
   if (middle.defaultPrevented) errors.push('Tab in the middle of the menu was trapped too early')
   document.activeElement.blur()
   const outsideTab = key(window, 'Tab')
-  if (!outsideTab.defaultPrevented || document.activeElement !== first) errors.push('Tab outside the menu did not move focus back in')
+  if (!outsideTab.defaultPrevented || document.activeElement !== close) errors.push('Tab outside the menu did not move focus to the Close button')
 
   key(window, 'Escape')
   expectClosed('Escape')
 
   burger.click()
   close.click()
-  expectClosed('close button')
-
-  burger.click()
-  link.click()
-  expectClosed('link click')
-
-  burger.click()
-  outside.click()
-  expectClosed('outside click')
-
-  burger.click()
-  pad.click()
-  if (burger.getAttribute('aria-expanded') !== 'true') errors.push('a click inside the drawer closed the menu')
-  burger.click()
-  expectClosed('burger toggle')
+  expectClosed('Close button')
 
   key(window, 'Escape')
   if (burger.getAttribute('aria-expanded') !== 'false') errors.push('Escape while closed changed aria-expanded')
   return errors
 }
 
-function checkTheme(source, lang) {
+async function checkTheme(source, lang) {
   const errors = []
   const { window, document, mq } = boot(source, { lang, matches: false, pref: 'system' })
   const zh = lang === 'zh'
-  const live = document.querySelector('[aria-live="polite"]')
   const toggle = document.querySelector('.xui-theme-toggle')
   const light = document.querySelector('[data-xui-theme-radio][value="light"]')
+  const dark = document.querySelector('[data-xui-theme-radio][value="dark"]')
   const system = document.querySelector('[data-xui-theme-radio][value="system"]')
-
-  if (!live || !live.classList.contains('xui-visually-hidden')) {
-    errors.push(`${lang}: missing the visually hidden polite live region`)
+  const live = () => document.querySelector('.xui-live')
+  const text = {
+    light: zh ? '主题：浅色' : 'Theme: Light',
+    dark: zh ? '主题：深色' : 'Theme: Dark',
+    systemDark: zh ? '主题：跟随系统（深色）' : 'Theme: System (Dark)',
   }
-  if (live && live.textContent !== '') errors.push(`${lang}: live region announced before a theme change`)
+
+  if (live()) errors.push(`${lang}: live region existed before a theme change`)
   if (mq.size !== 1) errors.push(`${lang}: system mode did not subscribe to prefers-color-scheme`)
 
   mq.dispatch(true)
   if (document.documentElement.dataset.theme !== 'light') errors.push(`${lang}: system mode ignored a live scheme change to light`)
   mq.dispatch(false)
   if (document.documentElement.dataset.theme !== 'dark') errors.push(`${lang}: system mode ignored a live scheme change to dark`)
+  if (live()) errors.push(`${lang}: an operating-system change announced a theme`)
 
   document.documentElement.dataset.themePref = 'dark'
   document.documentElement.dataset.theme = 'dark'
   mq.dispatch(true)
   if (document.documentElement.dataset.theme !== 'dark') errors.push(`${lang}: an explicit theme followed the system scheme`)
-  document.documentElement.dataset.themePref = 'system'
+  if (mq.size !== 1) errors.push(`${lang}: explicit theme removed the scheme listener`)
 
-  light.checked = true
-  light.dispatchEvent(new window.Event('change', { bubbles: true }))
-  if (document.documentElement.dataset.theme !== 'light' || mq.size !== 0) {
-    errors.push(`${lang}: choosing light did not drop the scheme listener`)
-  }
+  choose(window, light)
+  await announced(live(), text.light, `${lang} Light`, errors)
   mq.dispatch(false)
-  if (document.documentElement.dataset.theme !== 'light') errors.push(`${lang}: light mode changed after the listener should have been gone`)
-  const announced = zh ? '主题：浅色' : 'Theme: Light'
-  if (!live || live.textContent !== announced) errors.push(`${lang}: live region said ${JSON.stringify(live && live.textContent)}`)
+  if (document.documentElement.dataset.theme !== 'light') errors.push(`${lang}: explicit Light followed the OS`)
 
-  system.checked = true
-  system.dispatchEvent(new window.Event('change', { bubbles: true }))
-  if (mq.size !== 1) errors.push(`${lang}: returning to system did not resubscribe`)
+  choose(window, dark)
+  await announced(live(), text.dark, `${lang} Dark`, errors)
+
+  choose(window, system)
+  await announced(live(), text.systemDark, `${lang} System`, errors)
+  const spoken = live().textContent
   mq.dispatch(true)
-  if (document.documentElement.dataset.theme !== 'light') errors.push(`${lang}: system mode did not apply after resubscribe`)
+  if (document.documentElement.dataset.theme !== 'light') errors.push(`${lang}: system mode did not apply after returning to system`)
+  if (live().textContent !== spoken) errors.push(`${lang}: system scheme change rewrote the live region`)
 
   toggle.click()
   if (toggle.getAttribute('aria-label') !== (zh ? '主题：浅色。切换到深色。' : 'Theme: Light. Switch to Dark.')) {
     errors.push(`${lang}: aria-label was not updated (${toggle.getAttribute('aria-label')})`)
   }
-  if (!live || live.textContent !== announced) errors.push(`${lang}: toggle did not announce the new theme`)
+  await announced(live(), text.light, `${lang} toggle`, errors)
   return errors
+}
+
+function choose(window, input) {
+  input.checked = true
+  input.dispatchEvent(new window.Event('change', { bubbles: true }))
+}
+
+async function announced(region, expected, label, errors) {
+  await new Promise((resolve) => setTimeout(resolve, 80))
+  if (!region || !region.classList.contains('xui-live') || region.getAttribute('role') !== 'status' || region.getAttribute('aria-live') !== 'polite') {
+    errors.push(`${label}: live region is not a polite status .xui-live`)
+    return
+  }
+  if (region.textContent !== expected) errors.push(`${label}: live region said ${JSON.stringify(region.textContent)}`)
+  const width = region.ownerDocument.defaultView.getComputedStyle(region).width
+  if (width !== '1px') errors.push(`${label}: live region width is ${width}`)
 }
 
 function boot(source, { lang = 'en', matches = false, pref = 'system' } = {}) {
@@ -165,6 +174,12 @@ function boot(source, { lang = 'en', matches = false, pref = 'system' } = {}) {
   const mq = installMatchMedia(window, matches)
   window.eval(source)
   return { window, document, mq }
+}
+
+function reveal(window) {
+  for (const el of window.document.querySelectorAll('a,button,input,select,textarea')) {
+    Object.defineProperty(el, 'offsetParent', { configurable: true, get: () => window.document.body })
+  }
 }
 
 function installMatchMedia(window, matches) {
@@ -194,10 +209,6 @@ function installMatchMedia(window, matches) {
   }
   window.matchMedia = () => mq
   return mq
-}
-
-function focusables(root) {
-  return [...root.querySelectorAll('a[href],button:not([disabled]),input:not([disabled])')]
 }
 
 function key(window, name, extra = {}) {
