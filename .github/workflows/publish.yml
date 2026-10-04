@@ -19,7 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      actions: write
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
@@ -63,11 +64,38 @@ jobs:
           npm run build:web
           bash scripts/r2-web-release.sh check-outputs
 
+      - name: Pack npm tarball
+        id: pack
+        run: |
+          set -euo pipefail
+          npm pack --silent --json > "${RUNNER_TEMP}/npm-pack.json"
+          tarball="$(node -e 'const fs=require("fs"); const j=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); if(!Array.isArray(j)||!j[0]||!j[0].filename) process.exit(1); process.stdout.write(j[0].filename)' "${RUNNER_TEMP}/npm-pack.json")"
+          test -f "$tarball"
+          echo "tarball=${tarball}" >> "$GITHUB_OUTPUT"
+
+      - name: Attest npm tarball and web dist
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
+        with:
+          subject-path: |
+            ${{ steps.pack.outputs.tarball }}
+            web/dist/x-ui.css
+            web/dist/theme-script.js
+            web/dist/xui.js
+            web/dist/manifest.json
+            web/dist/fonts/**
+
       - name: Upload web dist
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: web-dist
           path: web/dist
+          if-no-files-found: error
+
+      - name: Upload npm tarball
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: npm-tarball
+          path: ${{ steps.pack.outputs.tarball }}
           if-no-files-found: error
 
   publish:
@@ -76,8 +104,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write
-      attestations: write
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
@@ -88,15 +114,28 @@ jobs:
           node-version: 22
           registry-url: https://npm.pkg.github.com
 
-      - run: npm ci
+      - name: Download npm tarball
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: npm-tarball
+          path: pack
 
       - name: Fail if version is already published
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          name="$(node -p "require('./package.json').name")"
-          version="$(node -p "require('./package.json').version")"
+          tarballs=(pack/*.tgz)
+          if [ "${#tarballs[@]}" -ne 1 ] || [ ! -f "${tarballs[0]}" ]; then
+            echo "::error::expected exactly one attested npm tarball"
+            exit 1
+          fi
+          meta="${RUNNER_TEMP}/npm-pack-meta"
+          mkdir -p "$meta"
+          tar -xzf "${tarballs[0]}" -C "$meta" package/package.json
+          export PACK_JSON="${meta}/package/package.json"
+          name="$(node -p 'require(process.env.PACK_JSON).name')"
+          version="$(node -p 'require(process.env.PACK_JSON).version')"
           if npm view "${name}@${version}" version > /tmp/npm-view.out 2> /tmp/npm-view.err; then
             echo "::error::${name}@$(tr -d '[:space:]' < /tmp/npm-view.out) is already published"
             exit 1
@@ -106,28 +145,20 @@ jobs:
             cat /tmp/npm-view.err
             exit 1
           fi
-
-      - name: Pack
-        run: npm pack
-
-      - name: Attest build provenance
-        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
-        with:
-          subject-path: zanehu-ai-synapse-ui-*.tgz
+          echo "tarball=${tarballs[0]}" >> "$GITHUB_ENV"
 
       - name: Publish
-        run: npm publish zanehu-ai-synapse-ui-*.tgz
+        run: npm publish "${tarball}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # Append-only. R2 object-write tokens can also delete; this job never deletes.
-  # CORS is not applied here. web/dist comes from the verify artifact.
+  # CORS is not applied here. Only the web/dist allowlist is uploaded.
   deploy-web:
     needs: [verify, publish]
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      actions: read
     env:
       # TBD: replace with the R2 bucket name once the bucket exists.
       R2_BUCKET: TBD
@@ -163,7 +194,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      actions: read
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
@@ -185,12 +215,14 @@ jobs:
           sri="$(bash scripts/r2-web-release.sh sri)"
           css_sri="$(printf '%s\n' "$sri" | awk '$1=="x-ui.css"{print $2}')"
           theme_sri="$(printf '%s\n' "$sri" | awk '$1=="theme-script.js"{print $2}')"
-          if [ -z "$css_sri" ] || [ -z "$theme_sri" ]; then
+          xui_sri="$(printf '%s\n' "$sri" | awk '$1=="xui.js"{print $2}')"
+          if [ -z "$css_sri" ] || [ -z "$theme_sri" ] || [ -z "$xui_sri" ]; then
             echo "::error::failed to compute SRI hashes"
             exit 1
           fi
           css_url="https://ui.zanehu.ai/${prefix}/x-ui.css"
           theme_url="https://ui.zanehu.ai/${prefix}/theme-script.js"
+          xui_url="https://ui.zanehu.ai/${prefix}/xui.js"
           {
             echo "### Web assets"
             echo ""
@@ -198,15 +230,17 @@ jobs:
             echo "- x-ui.css SRI: \`${css_sri}\`"
             echo "- ${theme_url}"
             echo "- theme-script.js SRI: \`${theme_sri}\`"
+            echo "- ${xui_url}"
+            echo "- xui.js SRI: \`${xui_sri}\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
           section="$(mktemp)"
-          printf '### Web assets\n\n`x-ui.css` SRI: `%s`\n\n%s\n\n`theme-script.js` SRI: `%s`\n\n%s\n' \
-            "$css_sri" "$css_url" "$theme_sri" "$theme_url" > "$section"
+          printf '### Web assets\n\n`x-ui.css` SRI: `%s`\n\n%s\n\n`theme-script.js` SRI: `%s`\n\n%s\n\n`xui.js` SRI: `%s`\n\n%s\n' \
+            "$css_sri" "$css_url" "$theme_sri" "$theme_url" "$xui_sri" "$xui_url" > "$section"
 
           notes="$(mktemp)"
           if gh release view "$GITHUB_REF_NAME" --json body --jq .body > "$notes" 2>/dev/null; then
-            if ! grep -Fq "$css_sri" "$notes" || ! grep -Fq "$theme_sri" "$notes"; then
+            if ! grep -Fq "$css_sri" "$notes" || ! grep -Fq "$theme_sri" "$notes" || ! grep -Fq "$xui_sri" "$notes"; then
               printf '\n' >> "$notes"
               cat "$section" >> "$notes"
               gh release edit "$GITHUB_REF_NAME" --notes-file "$notes"

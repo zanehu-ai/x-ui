@@ -22,15 +22,33 @@ content_type() {
     css) printf 'text/css' ;;
     js) printf 'text/javascript' ;;
     json) printf 'application/json' ;;
-    html|htm) printf 'text/html' ;;
-    svg) printf 'image/svg+xml' ;;
     woff) printf 'font/woff' ;;
     woff2) printf 'font/woff2' ;;
     ttf) printf 'font/ttf' ;;
     otf) printf 'font/otf' ;;
-    map) printf 'application/json' ;;
     *)
       echo "::error::no Content-Type mapping for ${file}" >&2
+      return 1
+      ;;
+  esac
+}
+
+allowed_rel() {
+  local rel=$1
+  local ext
+  case "$rel" in
+    x-ui.css|theme-script.js|xui.js|manifest.json)
+      return 0
+      ;;
+    fonts/*)
+      ext="${rel##*.}"
+      ext="${ext,,}"
+      case "$ext" in
+        woff2|woff|ttf|otf) return 0 ;;
+      esac
+      return 1
+      ;;
+    *)
       return 1
       ;;
   esac
@@ -55,40 +73,50 @@ require_build_web() {
 }
 
 check_outputs() {
-  local root missing=0
+  local root file rel missing=0 extras=0 fonts=0
   root="$(web_root)"
+  if [ ! -d "$root" ]; then
+    echo "::error::missing ${root} after build:web" >&2
+    exit 1
+  fi
+  while IFS= read -r -d '' file; do
+    rel="$(rel_key "$file")"
+    if allowed_rel "$rel"; then
+      case "$rel" in
+        fonts/*) fonts=$((fonts + 1)) ;;
+      esac
+    else
+      echo "::error::${root}/${rel} is not on the R2 upload allowlist" >&2
+      extras=1
+    fi
+  done < <(find "$root" -type f -print0 | sort -z)
   local required
-  for required in x-ui.css theme-script.js manifest.json; do
+  for required in x-ui.css theme-script.js xui.js manifest.json; do
     if [ ! -f "${root}/${required}" ]; then
       echo "::error::missing ${root}/${required} after build:web" >&2
       missing=1
     fi
   done
-  if [ ! -d "${root}/fonts" ] || [ -z "$(find "${root}/fonts" -type f -print -quit)" ]; then
-    echo "::error::missing at least one file under ${root}/fonts/ after build:web" >&2
+  if [ "$fonts" -eq 0 ]; then
+    echo "::error::missing at least one woff2, woff, ttf, or otf file under ${root}/fonts/" >&2
     missing=1
   fi
-  if [ "$missing" -ne 0 ]; then
+  if [ "$missing" -ne 0 ] || [ "$extras" -ne 0 ]; then
     exit 1
   fi
 }
 
-# NUL-delimited paths. manifest.json and x-ui.css at the dist root go last.
+# NUL-delimited. Fonts, then theme-script.js, then xui.js, then manifest.json, then x-ui.css.
 list_upload_order() {
   local root file
   root="$(web_root)"
   while IFS= read -r -d '' file; do
-    if [ "$file" = "${root}/manifest.json" ] || [ "$file" = "${root}/x-ui.css" ]; then
-      continue
-    fi
     printf '%s\0' "$file"
-  done < <(find "$root" -type f -print0 | sort -z)
-  if [ -f "${root}/manifest.json" ]; then
-    printf '%s\0' "${root}/manifest.json"
-  fi
-  if [ -f "${root}/x-ui.css" ]; then
-    printf '%s\0' "${root}/x-ui.css"
-  fi
+  done < <(find "${root}/fonts" -type f -print0 | sort -z)
+  printf '%s\0' "${root}/theme-script.js"
+  printf '%s\0' "${root}/xui.js"
+  printf '%s\0' "${root}/manifest.json"
+  printf '%s\0' "${root}/x-ui.css"
 }
 
 rel_key() {
@@ -203,18 +231,21 @@ upload() {
 }
 
 sri() {
-  local root css theme css_hash theme_hash
+  local root css theme runtime css_hash theme_hash runtime_hash
   root="$(web_root)"
   css="${root}/x-ui.css"
   theme="${root}/theme-script.js"
-  if [ ! -f "$css" ] || [ ! -f "$theme" ]; then
-    echo "::error::missing ${css} or ${theme}" >&2
+  runtime="${root}/xui.js"
+  if [ ! -f "$css" ] || [ ! -f "$theme" ] || [ ! -f "$runtime" ]; then
+    echo "::error::missing ${css}, ${theme}, or ${runtime}" >&2
     exit 1
   fi
   css_hash="$(openssl dgst -sha384 -binary "$css" | openssl base64 -A)"
   theme_hash="$(openssl dgst -sha384 -binary "$theme" | openssl base64 -A)"
+  runtime_hash="$(openssl dgst -sha384 -binary "$runtime" | openssl base64 -A)"
   printf 'x-ui.css sha384-%s\n' "$css_hash"
   printf 'theme-script.js sha384-%s\n' "$theme_hash"
+  printf 'xui.js sha384-%s\n' "$runtime_hash"
 }
 
 case "${1:-}" in
