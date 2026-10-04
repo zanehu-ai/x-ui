@@ -64,11 +64,25 @@ export function collectFonts(repoRoot) {
   return { css, files, licenses }
 }
 
+export function licenseEntries(licenses) {
+  return licenses.map((entry) => ({
+    id: entry.id,
+    family: entry.family,
+    license: 'SIL Open Font License, Version 1.1',
+    copyright: entry.text.split('\n').find((line) => line.trim()) ?? '',
+  }))
+}
+
+/**
+ * lightningcss removes every comment while minifying, including `/*!`.
+ * Append this after minify. The `/*!` form is the legal-comment marker
+ * that cssnano, clean-css and esbuild keep on a later pass.
+ */
 export function licenseComment(licenses) {
   if (licenses.length === 0) return ''
   const body = licenses
     .map((entry) => `----- ${entry.family} (${entry.id}) -----\n${entry.text}`)
     .join('\n\n')
     .replace(/\*\//g, '* /')
-  return `\n/*\nSelf-hosted font licenses (SIL Open Font License). Kept in this stylesheet because the web/dist allowlist accepts font binaries only.\n\n${body}\n*/\n`
+  return `\n/*! Self-hosted font licenses (SIL Open Font License). Kept in this stylesheet because the web/dist allowlist accepts font binaries only.\n\n${body}\n*/\n`
 }

@@ -3,7 +3,7 @@ import path from 'node:path'
 import { createHash } from 'node:crypto'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { transform } from 'lightningcss'
-import { collectFonts, licenseComment } from './fonts.mjs'
+import { collectFonts, licenseComment, licenseEntries } from './fonts.mjs'
 import { assertContrast } from './contrast.mjs'
 import { generateTokenCss, loadTokens, renderTokenModules } from './token-model.mjs'
 
@@ -96,6 +96,7 @@ export function buildWeb({ dev = false } = {}) {
     },
     components: COMPONENTS,
     brands: Object.keys(tokens.brands),
+    licenses: licenseEntries(fonts.licenses),
   }
   fs.writeFileSync(path.join(distDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`)
 

@@ -4,6 +4,7 @@ import path from 'node:path'
 import { createHash } from 'node:crypto'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { buildWeb } from './build.mjs'
+import { checkMenuScript } from './check-menu.mjs'
 import { lintCss, tokenHexMap } from './lint/check-consumer.mjs'
 import { findMockupMarkers } from './lint/check-tbc.mjs'
 import { loadTokens, renderTokenModules } from './token-model.mjs'
@@ -37,6 +38,10 @@ function allowed(rel) {
 
 function sri(file) {
   return `sha384-${createHash('sha384').update(fs.readFileSync(file)).digest('base64')}`
+}
+
+function stripOrdinaryComments(css) {
+  return css.replace(/\/\*[\s\S]*?\*\//g, (comment) => (comment.startsWith('/*!') ? comment : ''))
 }
 
 const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'))
@@ -106,6 +111,7 @@ for (const needle of [
   '.xui-hero--island',
   'prefers-reduced-motion',
   ':focus-visible',
+  '.xui-visually-hidden',
   'SIL Open Font License, Version 1.1',
 ]) {
   if (!css.includes(needle)) fail(`x-ui.css is missing ${needle}`)
@@ -113,7 +119,40 @@ for (const needle of [
 if (css.includes('.xui-band') || css.includes('linear-gradient(transparent 58%')) {
   fail('x-ui.css contains a dropped highlight or xui-band rule')
 }
+const contactSrc = fs.readFileSync(path.join(repoRoot, 'web/components.css'), 'utf8')
+const contact = contactSrc.slice(contactSrc.indexOf('/* 15b ContactBlock'), contactSrc.indexOf('/* 15c ListRow'))
+const anywhere = contact.match(/overflow-wrap:anywhere/g) ?? []
+if (anywhere.length !== 1 || !/@media \(max-width:767px\) \{\s*\.xui-contact--lg \.xui-contact__mail \{[^}]*overflow-wrap:anywhere/.test(contact)) {
+  fail('overflow-wrap:anywhere must apply only to .xui-contact--lg below 768px')
+}
+const builtLg = css.match(/\.xui-contact--lg \.xui-contact__mail\{[^}]*\}/g) ?? []
+if (!builtLg.some((rule) => rule.includes('overflow-wrap:anywhere')) || !builtLg.some((rule) => !rule.includes('overflow-wrap'))) {
+  fail('built css did not keep the wide large-email rule free of overflow-wrap:anywhere')
+}
 if ((css.match(/SIL Open Font License, Version 1.1/g) ?? []).length < 5) fail('x-ui.css is missing an OFL license')
+if (!css.includes('/*!')) fail('x-ui.css font license comment is not a /*! preserved comment')
+const stripped = stripOrdinaryComments(css)
+if ((stripped.match(/SIL Open Font License, Version 1.1/g) ?? []).length < 5) {
+  fail('font license text does not survive a legal-comment minify')
+}
+const sample = stripOrdinaryComments('a{color:red}/* ordinary */ /*! kept */')
+if (sample.includes('ordinary') || !sample.includes('/*! kept */')) fail('legal-comment stripper is wrong')
+
+const licenseIds = ['inter', 'barlow-condensed', 'jetbrains-mono', 'geist', 'geist-mono']
+if (!Array.isArray(manifest.licenses) || manifest.licenses.length !== licenseIds.length) {
+  fail('manifest.json licenses must list the five self-hosted families')
+}
+manifest.licenses?.forEach((entry, index) => {
+  if (entry?.id !== licenseIds[index]) fail(`manifest license ${index} id is ${entry?.id}`)
+  if (!entry?.family || entry.license !== 'SIL Open Font License, Version 1.1') {
+    fail(`manifest license ${entry?.id || index} is missing family or license name`)
+  }
+  if (!entry?.copyright || !css.includes(entry.copyright) || !stripped.includes(entry.copyright)) {
+    fail(`manifest license ${entry?.id || index} copyright is missing from x-ui.css`)
+  }
+})
+
+for (const error of checkMenuScript(path.join(distDir, 'xui.js'))) fail(error)
 
 const hexes = tokenHexMap(tokens)
 const badCss = '.btn { color: #000000; }\n.xui-btn { padding: 1px; }\n:root { --brand-color: red; }\n'

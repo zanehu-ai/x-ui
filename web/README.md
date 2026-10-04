@@ -48,9 +48,9 @@ Read `integrity` from `manifest.json` after `npm run build:web` (fields `sri.x-u
 
 ## Theme
 
-`data-theme` is `light` or `dark`. The theme button cycles system → light → dark. System is the default: `theme-script.js` reads `localStorage` key `theme` and, when the value is missing, follows `prefers-color-scheme`.
+`data-theme` is `light` or `dark`. The theme button cycles system → light → dark. System is the default: `theme-script.js` reads `localStorage` key `theme` and, when the value is missing, follows `prefers-color-scheme`. While the preference stays `system`, `xui.js` keeps a `prefers-color-scheme: light` listener and updates `data-theme` when the OS theme changes. Choosing light or dark removes that listener.
 
-With JavaScript, `data-theme` is set before paint.
+With JavaScript, `data-theme` is set before paint. The theme control also writes the new theme into a visually hidden `aria-live="polite"` region (`.xui-visually-hidden`).
 
 The brand CSS also includes a `prefers-color-scheme: light` block for a page that has no `data-theme`. That block is what a no-JS visitor on a light OS gets. A no-JS visitor on a dark OS gets the dark tokens.
 
@@ -82,8 +82,8 @@ The footer legal slot is `<div class="xui-footer__legal"></div>`. It renders not
 
 ## Behaviour in `xui.js`
 
-- Theme toggle (button and the `data-xui-theme-radio` group)
-- Phone menu (`.xui-header__burger` / `.xui-drawer__close`)
+- Theme toggle (button and the `data-xui-theme-radio` group), including the live announcement above
+- Phone menu. Opening sets the burger's `aria-expanded` to `"true"` and moves focus into the drawer. Tab stays inside the drawer while it is open. Closing — the burger again, the close button, Escape, a link, or a click outside — sets `aria-expanded` back to `"false"` and returns focus to that burger.
 - Copy button (hidden until JavaScript runs, with a `document.execCommand("copy")` fallback)
 
 Language switching is plain links. It has no script.
@@ -102,7 +102,7 @@ import { tokens, type WebBrand } from '@zanehu-ai/synapse-ui/web/tokens.js'
 
 `build:web` writes Latin `woff2` subsets for Inter, Barlow Condensed, JetBrains Mono, Geist and Geist Mono, at the weights the CSS uses. `@font-face` urls are relative (`fonts/...`). CJK text uses the system stack in `--xui-font-cjk` and is not self-hosted.
 
-Each family’s SIL Open Font License text is appended to `x-ui.css`. The release allowlist does not accept a sibling `.txt` file under `fonts/`.
+Each family’s SIL Open Font License text is appended to `x-ui.css` as a `/*! ... */` comment after minification, so a later legal-comment pass keeps it. `manifest.json` lists the same families under `licenses` (`id`, `family`, `license`, `copyright`). The release allowlist does not accept a sibling `.txt` file under `fonts/`.
 
 Font files and the `@font-face` block are produced only by `web/fonts.mjs`. Dropping that block and `web/dist/fonts/` switches the sites to system fonts. The family names in the token stacks stay, so text falls through to `system-ui` and the CJK list.
 
