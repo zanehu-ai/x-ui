@@ -1,21 +1,17 @@
 #!/usr/bin/env bash
-# Helpers for the append-only R2 web deploy.
-# The release workflow never deletes objects and does not apply CORS.
-# Apply infra/r2-cors.json out of band (see the release checklist).
+# Append-only R2 upload of the web/dist tree.
+# This script never deletes objects and does not apply CORS.
 set -euo pipefail
 
 CACHE_CONTROL='public, max-age=31536000, immutable'
 
 usage() {
-  echo "usage: r2-web-release.sh plan|assert-absent|sri" >&2
+  echo "usage: r2-web-release.sh require-build-web|check-outputs|preflight|upload|sri" >&2
   exit 2
 }
 
-quote() {
-  local value=$1
-  value=${value//\\/\\\\}
-  value=${value//\"/\\\"}
-  printf '"%s"' "$value"
+web_root() {
+  printf '%s' "${WEB_ROOT:-web/dist}"
 }
 
 content_type() {
@@ -25,11 +21,14 @@ content_type() {
   case "$ext" in
     css) printf 'text/css' ;;
     js) printf 'text/javascript' ;;
-    woff2) printf 'font/woff2' ;;
+    json) printf 'application/json' ;;
+    html|htm) printf 'text/html' ;;
+    svg) printf 'image/svg+xml' ;;
     woff) printf 'font/woff' ;;
+    woff2) printf 'font/woff2' ;;
     ttf) printf 'font/ttf' ;;
     otf) printf 'font/otf' ;;
-    eot) printf 'application/vnd.ms-fontobject' ;;
+    map) printf 'application/json' ;;
     *)
       echo "::error::no Content-Type mapping for ${file}" >&2
       return 1
@@ -48,93 +47,181 @@ require_bucket() {
   fi
 }
 
-emit_put() {
-  local bucket=$1 prefix=$2 rel=$3 file=$4 ctype=$5
-  printf 'r2 object put %s --file=%s --content-type=%s --cache-control=%s --remote\n' \
-    "$(quote "${bucket}/${prefix}/${rel}")" \
-    "$(quote "$file")" \
-    "$(quote "$ctype")" \
-    "$(quote "$CACHE_CONTROL")"
+require_build_web() {
+  if ! node -e "const s=require('./package.json').scripts||{}; if(!s['build:web']) process.exit(1)"; then
+    echo "::error::npm script build:web is missing. This release depends on Platform Engineer's tokens PR, which adds web/ sources and build:web." >&2
+    exit 1
+  fi
 }
 
-plan() {
-  require_bucket
-  local root="${WEB_ROOT:-web}"
-  local css="${root}/x-ui.css"
-  local theme="${root}/theme-script.js"
-  local fonts="${root}/fonts"
-  local file rel ctype found=0
+check_outputs() {
+  local root missing=0
+  root="$(web_root)"
+  local required
+  for required in x-ui.css theme-script.js manifest.json; do
+    if [ ! -f "${root}/${required}" ]; then
+      echo "::error::missing ${root}/${required} after build:web" >&2
+      missing=1
+    fi
+  done
+  if [ ! -d "${root}/fonts" ] || [ -z "$(find "${root}/fonts" -type f -print -quit)" ]; then
+    echo "::error::missing at least one file under ${root}/fonts/ after build:web" >&2
+    missing=1
+  fi
+  if [ "$missing" -ne 0 ]; then
+    exit 1
+  fi
+}
 
-  if [ ! -f "$css" ]; then
-    echo "::error::missing ${css}" >&2
-    exit 1
-  fi
-  if [ ! -f "$theme" ]; then
-    echo "::error::missing ${theme}" >&2
-    exit 1
-  fi
-  if [ ! -d "$fonts" ]; then
-    echo "::error::missing ${fonts}" >&2
-    exit 1
-  fi
-
+# NUL-delimited paths. manifest.json and x-ui.css at the dist root go last.
+list_upload_order() {
+  local root file
+  root="$(web_root)"
   while IFS= read -r -d '' file; do
-    found=1
-    rel="${file#"${root}/"}"
-    ctype="$(content_type "$file")"
-    emit_put "$R2_BUCKET" "$VERSION_PREFIX" "$rel" "$file" "$ctype"
-  done < <(find "$fonts" -type f -print0 | sort -z)
-
-  if [ "$found" -eq 0 ]; then
-    echo "::error::no font files under ${fonts}" >&2
-    exit 1
+    if [ "$file" = "${root}/manifest.json" ] || [ "$file" = "${root}/x-ui.css" ]; then
+      continue
+    fi
+    printf '%s\0' "$file"
+  done < <(find "$root" -type f -print0 | sort -z)
+  if [ -f "${root}/manifest.json" ]; then
+    printf '%s\0' "${root}/manifest.json"
   fi
-
-  emit_put "$R2_BUCKET" "$VERSION_PREFIX" "theme-script.js" "$theme" "text/javascript"
-  # x-ui.css is last so the prefix guard stays clear until every other object is up.
-  emit_put "$R2_BUCKET" "$VERSION_PREFIX" "x-ui.css" "$css" "text/css"
+  if [ -f "${root}/x-ui.css" ]; then
+    printf '%s\0' "${root}/x-ui.css"
+  fi
 }
 
-assert_absent() {
-  require_bucket
-  local out err status
+rel_key() {
+  local root
+  root="$(web_root)"
+  printf '%s' "${1#"${root}/"}"
+}
+
+sha256_file() {
+  sha256sum "$1" | awk '{print $1}'
+}
+
+wrangler() {
+  if [ -n "${WRANGLER_BIN:-}" ]; then
+    "$WRANGLER_BIN" "$@"
+  else
+    if [ -z "${WRANGLER_VERSION:-}" ]; then
+      echo "::error::WRANGLER_VERSION is required" >&2
+      exit 1
+    fi
+    npx --yes "wrangler@${WRANGLER_VERSION}" "$@"
+  fi
+}
+
+# Prints missing, match, or differ. Unexpected wrangler errors return 1.
+object_state() {
+  local rel=$1
+  local localfile=$2
+  local tmp out err status local_hash remote_hash
+  tmp="$(mktemp)"
   out="$(mktemp)"
   err="$(mktemp)"
   set +e
-  if [ -n "${WRANGLER_BIN:-}" ]; then
-    "$WRANGLER_BIN" r2 object get "${R2_BUCKET}/${VERSION_PREFIX}/x-ui.css" --file /tmp/r2-prefix-probe.css --remote >"$out" 2>"$err"
-  else
-    npx wrangler r2 object get "${R2_BUCKET}/${VERSION_PREFIX}/x-ui.css" --file /tmp/r2-prefix-probe.css --remote >"$out" 2>"$err"
-  fi
+  wrangler r2 object get "${R2_BUCKET}/${VERSION_PREFIX}/${rel}" --file "$tmp" --remote >"$out" 2>"$err"
   status=$?
   set -e
   if [ "$status" -eq 0 ]; then
-    echo "::error::${VERSION_PREFIX}/x-ui.css already exists in ${R2_BUCKET}; refusing to upload" >&2
-    exit 1
+    local_hash="$(sha256_file "$localfile")"
+    remote_hash="$(sha256_file "$tmp")"
+    rm -f "$tmp" "$out" "$err"
+    if [ "$local_hash" = "$remote_hash" ]; then
+      printf 'match\n'
+    else
+      printf 'differ\n'
+    fi
+    return 0
   fi
   if grep -q "The specified key does not exist" "$err" "$out"; then
-    echo "Prefix ${VERSION_PREFIX}/ has no x-ui.css."
-    exit 0
+    rm -f "$tmp" "$out" "$err"
+    printf 'missing\n'
+    return 0
   fi
-  echo "::error::Could not confirm that ${VERSION_PREFIX}/x-ui.css is absent (wrangler exit ${status})." >&2
+  echo "::error::Could not read ${VERSION_PREFIX}/${rel} (wrangler exit ${status})." >&2
   cat "$out" "$err" >&2
-  exit 1
+  rm -f "$tmp" "$out" "$err"
+  return 1
+}
+
+preflight() {
+  require_bucket
+  check_outputs
+  local root css_state manifest_state
+  root="$(web_root)"
+  css_state="$(object_state "x-ui.css" "${root}/x-ui.css")"
+  manifest_state="$(object_state "manifest.json" "${root}/manifest.json")"
+  if [ "$css_state" = "differ" ] || [ "$manifest_state" = "differ" ]; then
+    echo "::error::Refusing to upload. ${VERSION_PREFIX}/x-ui.css is ${css_state} and manifest.json is ${manifest_state}. An existing object must be byte-identical." >&2
+    exit 1
+  fi
+  if [ "$css_state" = "match" ] && [ "$manifest_state" = "match" ]; then
+    echo "x-ui.css and manifest.json match the local build; idempotent re-run."
+  else
+    echo "Release prefix is free to continue (x-ui.css=${css_state}, manifest.json=${manifest_state})."
+  fi
+}
+
+upload_one() {
+  local file=$1
+  local rel ctype state
+  rel="$(rel_key "$file")"
+  ctype="$(content_type "$file")"
+  state="$(object_state "$rel" "$file")"
+  case "$state" in
+    match)
+      echo "skip ${rel}; sha256 matches"
+      ;;
+    missing)
+      echo "upload ${rel} (${ctype})"
+      wrangler r2 object put "${R2_BUCKET}/${VERSION_PREFIX}/${rel}" \
+        --file "$file" \
+        --content-type "$ctype" \
+        --cache-control "$CACHE_CONTROL" \
+        --remote
+      ;;
+    differ)
+      echo "::error::${VERSION_PREFIX}/${rel} exists and its sha256 does not match the local file" >&2
+      exit 1
+      ;;
+    *)
+      echo "::error::unexpected state '${state}' for ${rel}" >&2
+      exit 1
+      ;;
+  esac
+}
+
+upload() {
+  preflight
+  local file
+  while IFS= read -r -d '' file; do
+    upload_one "$file"
+  done < <(list_upload_order)
 }
 
 sri() {
-  local css="${WEB_ROOT:-web}/x-ui.css"
-  local hash
-  if [ ! -f "$css" ]; then
-    echo "::error::missing ${css}" >&2
+  local root css theme css_hash theme_hash
+  root="$(web_root)"
+  css="${root}/x-ui.css"
+  theme="${root}/theme-script.js"
+  if [ ! -f "$css" ] || [ ! -f "$theme" ]; then
+    echo "::error::missing ${css} or ${theme}" >&2
     exit 1
   fi
-  hash="$(openssl dgst -sha384 -binary "$css" | openssl base64 -A)"
-  printf 'sha384-%s\n' "$hash"
+  css_hash="$(openssl dgst -sha384 -binary "$css" | openssl base64 -A)"
+  theme_hash="$(openssl dgst -sha384 -binary "$theme" | openssl base64 -A)"
+  printf 'x-ui.css sha384-%s\n' "$css_hash"
+  printf 'theme-script.js sha384-%s\n' "$theme_hash"
 }
 
 case "${1:-}" in
-  plan) plan ;;
-  assert-absent) assert_absent ;;
+  require-build-web) require_build_web ;;
+  check-outputs) check_outputs ;;
+  preflight) preflight ;;
+  upload) upload ;;
   sri) sri ;;
   *) usage ;;
 esac

@@ -1,4 +1,4 @@
-name: Publish to GitHub Packages
+name: Release
 
 on:
   push:
@@ -6,30 +6,34 @@ on:
 
 permissions:
   contents: read
-  packages: write
-  # id-token signs the build attestation. GitHub Packages does not accept
-  # npm's --provenance flag (that path is registry.npmjs.org only).
-  id-token: write
-  attestations: write
+
+concurrency:
+  group: x-ui-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  WRANGLER_VERSION: "4.147.0"
 
 jobs:
-  publish:
+  verify:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
-          registry-url: https://npm.pkg.github.com
 
       - run: npm ci
 
-      - name: TypeScript Check
-        run: npx tsc --noEmit
-
       - name: Verify tag matches package.json version
         run: |
+          set -euo pipefail
           tag="${GITHUB_REF_NAME#x-ui-v}"
           pkg="$(node -p "require('./package.json').version")"
           if [ "$tag" != "$pkg" ]; then
@@ -37,10 +41,60 @@ jobs:
             exit 1
           fi
 
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: |
+          set -euo pipefail
+          if node -e "const s=require('./package.json').scripts||{}; if(!s.test) process.exit(1)"; then
+            npm test
+          else
+            echo "No test script; skipping."
+          fi
+
+      - name: Build package
+        run: npm run build
+
+      - name: Build web assets
+        run: |
+          set -euo pipefail
+          bash scripts/r2-web-release.sh require-build-web
+          npm run build:web
+          bash scripts/r2-web-release.sh check-outputs
+
+      - name: Upload web dist
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: web-dist
+          path: web/dist
+          if-no-files-found: error
+
+  publish:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com
+
+      - run: npm ci
+
       - name: Fail if version is already published
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           name="$(node -p "require('./package.json').name")"
           version="$(node -p "require('./package.json').version")"
           if npm view "${name}@${version}" version > /tmp/npm-view.out 2> /tmp/npm-view.err; then
@@ -57,7 +111,7 @@ jobs:
         run: npm pack
 
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
         with:
           subject-path: zanehu-ai-synapse-ui-*.tgz
 
@@ -66,80 +120,93 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Append-only upload of web/ to R2 under x-ui-vYYYY.MM.N/.
-  # R2 object-write tokens can also delete; this job never issues a delete.
-  # CORS is not configured here. Apply infra/r2-cors.json out of band.
+  # Append-only. R2 object-write tokens can also delete; this job never deletes.
+  # CORS is not applied here. web/dist comes from the verify artifact.
   deploy-web:
+    needs: [verify, publish]
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
+      actions: read
     env:
       # TBD: replace with the R2 bucket name once the bucket exists.
       R2_BUCKET: TBD
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
 
-      - name: Verify tag matches package.json version
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Download web dist
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: web-dist
+          path: web/dist
+
+      - name: Set version prefix
         run: |
           set -euo pipefail
-          tag="${GITHUB_REF_NAME#x-ui-v}"
           pkg="$(node -p "require('./package.json').version")"
-          if [ "$tag" != "$pkg" ]; then
-            echo "::error::Tag ${GITHUB_REF_NAME} is version '${tag}', but package.json is '${pkg}'"
-            exit 1
-          fi
           echo "VERSION_PREFIX=x-ui-v${pkg}" >> "$GITHUB_ENV"
 
-      - name: Plan R2 uploads
-        id: plan
-        run: |
-          set -euo pipefail
-          delimiter="R2_PUTS_$(uuidgen | tr -d '-')"
-          {
-            echo "commands<<${delimiter}"
-            bash scripts/r2-web-release.sh plan
-            echo "${delimiter}"
-          } >> "$GITHUB_OUTPUT"
+      - name: Upload web dist to R2
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bash scripts/r2-web-release.sh upload
 
-      - name: Fail if the version prefix already exists
-        uses: cloudflare/wrangler-action@v3
+  release-notes:
+    needs: [verify, deploy-web]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          packageManager: npm
-          wranglerVersion: 4.x
-          preCommands: bash scripts/r2-web-release.sh assert-absent
-          command: --version
+          persist-credentials: false
 
-      - name: Upload web assets to R2
-        uses: cloudflare/wrangler-action@v3
+      - name: Download web dist
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          packageManager: npm
-          wranglerVersion: 4.x
-          command: ${{ steps.plan.outputs.commands }}
+          name: web-dist
+          path: web/dist
 
-      - name: Record x-ui.css SRI
+      - name: Record SRI in the job summary and release notes
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          pkg="$(node -p "require('./package.json').version")"
+          prefix="x-ui-v${pkg}"
           sri="$(bash scripts/r2-web-release.sh sri)"
-          url="https://ui.zanehu.ai/${VERSION_PREFIX}/x-ui.css"
+          css_sri="$(printf '%s\n' "$sri" | awk '$1=="x-ui.css"{print $2}')"
+          theme_sri="$(printf '%s\n' "$sri" | awk '$1=="theme-script.js"{print $2}')"
+          if [ -z "$css_sri" ] || [ -z "$theme_sri" ]; then
+            echo "::error::failed to compute SRI hashes"
+            exit 1
+          fi
+          css_url="https://ui.zanehu.ai/${prefix}/x-ui.css"
+          theme_url="https://ui.zanehu.ai/${prefix}/theme-script.js"
           {
-            echo "### x-ui.css"
+            echo "### Web assets"
             echo ""
-            echo "- URL: ${url}"
-            echo "- SRI: \`${sri}\`"
+            echo "- ${css_url}"
+            echo "- x-ui.css SRI: \`${css_sri}\`"
+            echo "- ${theme_url}"
+            echo "- theme-script.js SRI: \`${theme_sri}\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
-          notes="$(mktemp)"
           section="$(mktemp)"
-          printf '### x-ui.css\n\nSRI: `%s`\n\n%s\n' "$sri" "$url" > "$section"
+          printf '### Web assets\n\n`x-ui.css` SRI: `%s`\n\n%s\n\n`theme-script.js` SRI: `%s`\n\n%s\n' \
+            "$css_sri" "$css_url" "$theme_sri" "$theme_url" > "$section"
 
+          notes="$(mktemp)"
           if gh release view "$GITHUB_REF_NAME" --json body --jq .body > "$notes" 2>/dev/null; then
-            if ! grep -Fq "$sri" "$notes"; then
+            if ! grep -Fq "$css_sri" "$notes" || ! grep -Fq "$theme_sri" "$notes"; then
               printf '\n' >> "$notes"
               cat "$section" >> "$notes"
               gh release edit "$GITHUB_REF_NAME" --notes-file "$notes"

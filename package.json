@@ -1,6 +1,6 @@
 {
   "name": "@zanehu-ai/synapse-ui",
-  "version": "2026.10.1",
+  "version": "0.1.8",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
