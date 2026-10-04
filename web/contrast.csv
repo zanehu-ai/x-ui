@@ -1,0 +1,25 @@
+pair,fg,bg,ratio,target,result
+[Dark] text_primary on bg_base,#FFFFFF,#000000,21.0,4.5,PASS
+[Dark] text_secondary on bg_base,#B3B3B3,#000000,10.02,4.5,PASS
+[Dark] text_tertiary on bg_base,#8F8F8F,#000000,6.49,4.5,PASS
+[Dark] accent_text (= foreground) on bg_base,#FFFFFF,#000000,21.0,4.5,PASS
+[Dark] primary button: accent_on on accent_fill (inverted),#000000,#FFFFFF,21.0,4.5,PASS
+[Dark] Live pill: accent_on on accent_fill (filled),#000000,#FFFFFF,21.0,4.5,PASS
+[Dark] Building/Stopped/Next pill outline: border_strong on bg_base (UI 3:1),#767676,#000000,4.62,3.0,PASS
+[Dark] Stopped/Next pill text: text_secondary on bg_base,#B3B3B3,#000000,10.02,4.5,PASS
+"[Dark] focus ring (foreground, 2px, offset 3px) on bg_base",#FFFFFF,#000000,21.0,3.0,PASS
+"[Dark] border_strong (inputs, controls, rules) on bg_base",#767676,#000000,4.62,3.0,PASS
+"[Dark] border_subtle (dividers, card edges; 3:1 so every pair passes)",#5E5E5E,#000000,3.24,3.0,PASS
+[Light] text_primary on bg_base,#000000,#FFFFFF,21.0,4.5,PASS
+[Light] text_secondary on bg_base,#525252,#FFFFFF,7.81,4.5,PASS
+[Light] text_tertiary on bg_base,#6B6B6B,#FFFFFF,5.33,4.5,PASS
+[Light] accent_text (= foreground) on bg_base,#000000,#FFFFFF,21.0,4.5,PASS
+[Light] primary button: accent_on on accent_fill (inverted),#FFFFFF,#000000,21.0,4.5,PASS
+[Light] Live pill: accent_on on accent_fill (filled),#FFFFFF,#000000,21.0,4.5,PASS
+[Light] Building/Stopped/Next pill outline: border_strong on bg_base (UI 3:1),#767676,#FFFFFF,4.54,3.0,PASS
+[Light] Stopped/Next pill text: text_secondary on bg_base,#525252,#FFFFFF,7.81,4.5,PASS
+"[Light] focus ring (foreground, 2px, offset 3px) on bg_base",#000000,#FFFFFF,21.0,3.0,PASS
+"[Light] border_strong (inputs, controls, rules) on bg_base",#767676,#FFFFFF,4.54,3.0,PASS
+"[Light] border_subtle (dividers, card edges; 3:1 so every pair passes)",#8F8F8F,#FFFFFF,3.23,3.0,PASS
+[Dark island in light mode] focus ring white on #000000,#FFFFFF,#000000,21.0,3.0,PASS
+[Orbit SVG] label #B3B3B3 on #000000,#B3B3B3,#000000,10.02,4.5,PASS
