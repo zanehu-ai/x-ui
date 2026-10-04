@@ -130,6 +130,19 @@ case "$mode" in
         echo "Failed to fetch /accounts/0/r2/buckets/b/objects/${key} - 403: Forbidden;" >&2
         exit 1
         ;;
+      match)
+        rel="${key#*/}"
+        if [ ! -f "${MOCK_TREE}/${rel}" ]; then
+          echo "no local file for ${rel}" >&2
+          exit 2
+        fi
+        cp "${MOCK_TREE}/${rel}" "$file"
+        exit 0
+        ;;
+      differ)
+        printf 'different\n' > "$file"
+        exit 0
+        ;;
       *)
         echo "unknown release state" >&2
         exit 2
@@ -162,6 +175,7 @@ run_release() {
     MOCK_SENTINEL="$sentinel_mode" \
     EXPECT_SENTINEL="$sentinel" \
     MOCK_RELEASE="$release_mode" \
+    MOCK_TREE="$tree" \
     bash "$SCRIPT" "$cmd" >"$stdout" 2>"$stderr"
   status=$?
   set -e
@@ -207,6 +221,77 @@ if [ "$status" -eq 0 ]; then
 fi
 grep -Fq '403' "$stderr" || fail "403 body was not surfaced"
 pass "403 is not missing"
+
+# An inherited SENTINEL_OK=1 must not skip the bucket-root read.
+sentinel_mode="fail"
+release_mode="missing"
+SENTINEL_OK=1 run_release preflight
+if [ "$status" -eq 0 ]; then
+  fail "inherited SENTINEL_OK=1 skipped the sentinel check"
+fi
+grep -Fq "${bucket}/${sentinel}" "$log" || fail "inherited SENTINEL_OK=1 did not read the sentinel"
+pass "inherited SENTINEL_OK does not skip the sentinel"
+unset SENTINEL_OK
+
+# Match and differ run only after the bucket-root sentinel read succeeds.
+sentinel_read_first() {
+  local first
+  first="$(head -n 1 "$log")"
+  case "$first" in
+    *"object get ${bucket}/${sentinel}"*) ;;
+    *) fail "release-key check ran before the sentinel read: ${first}" ;;
+  esac
+}
+
+sentinel_mode="ok"
+release_mode="match"
+run_release preflight
+sentinel_read_first
+if [ "$status" -ne 0 ]; then
+  cat "$stderr" >&2
+  fail "matching css and manifest should pass preflight"
+fi
+grep -Fq 'idempotent re-run' "$stdout" || fail "match should be an idempotent re-run"
+if [ -s "$puts" ]; then
+  fail "preflight match should not put"
+fi
+pass "preflight match skips after the sentinel read"
+
+release_mode="differ"
+run_release preflight
+sentinel_read_first
+if [ "$status" -eq 0 ]; then
+  fail "differing css or manifest should fail preflight"
+fi
+grep -Fq 'byte-identical' "$stderr" || fail "differ should refuse before upload"
+if [ -s "$puts" ]; then
+  fail "preflight differ should not put"
+fi
+pass "preflight differ fails after the sentinel read"
+
+release_mode="match"
+run_release upload
+sentinel_read_first
+if [ "$status" -ne 0 ]; then
+  cat "$stderr" >&2
+  fail "upload should skip when every object matches"
+fi
+grep -Fq 'sha256 matches' "$stdout" || fail "upload match should skip"
+if [ -s "$puts" ]; then
+  fail "upload match should not put"
+fi
+pass "upload match skips after the sentinel read"
+
+release_mode="differ"
+run_release upload
+sentinel_read_first
+if [ "$status" -eq 0 ]; then
+  fail "upload should fail when the remote bytes differ"
+fi
+if [ -s "$puts" ]; then
+  fail "upload differ should fail before any put"
+fi
+pass "upload differ fails after the sentinel read"
 
 sentinel_mode="fail"
 release_mode="missing"

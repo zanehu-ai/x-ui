@@ -8,6 +8,8 @@ CACHE_CONTROL='public, max-age=31536000, immutable'
 # Bucket root, outside any x-ui-v* prefix. Wrangler 4.147.0 reports every
 # HTTP 404 as a missing key, including a wrong bucket or account.
 SENTINEL_KEY='_xui-sentinel.txt'
+# An inherited SENTINEL_OK=1 would skip the bucket-root read. Only require_sentinel sets this.
+SENTINEL_OK=0
 
 usage() {
   echo "usage: r2-web-release.sh require-build-web|check-outputs|preflight|upload|sri" >&2
