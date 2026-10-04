@@ -2,11 +2,15 @@ name: Publish to GitHub Packages
 
 on:
   push:
-    tags: ['v*']
+    tags: ['x-ui-v*']
 
 permissions:
   contents: read
   packages: write
+  # id-token signs the build attestation. GitHub Packages does not accept
+  # npm's --provenance flag (that path is registry.npmjs.org only).
+  id-token: write
+  attestations: write
 
 jobs:
   publish:
@@ -24,6 +28,125 @@ jobs:
       - name: TypeScript Check
         run: npx tsc --noEmit
 
-      - run: npm publish
+      - name: Verify tag matches package.json version
+        run: |
+          tag="${GITHUB_REF_NAME#x-ui-v}"
+          pkg="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$pkg" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} is version '${tag}', but package.json is '${pkg}'"
+            exit 1
+          fi
+
+      - name: Fail if version is already published
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          name="$(node -p "require('./package.json').name")"
+          version="$(node -p "require('./package.json').version")"
+          if npm view "${name}@${version}" version > /tmp/npm-view.out 2> /tmp/npm-view.err; then
+            echo "::error::${name}@$(tr -d '[:space:]' < /tmp/npm-view.out) is already published"
+            exit 1
+          fi
+          if ! grep -q E404 /tmp/npm-view.err; then
+            echo "::error::Could not confirm whether ${name}@${version} is already published"
+            cat /tmp/npm-view.err
+            exit 1
+          fi
+
+      - name: Pack
+        run: npm pack
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: zanehu-ai-synapse-ui-*.tgz
+
+      - name: Publish
+        run: npm publish zanehu-ai-synapse-ui-*.tgz
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Append-only upload of web/ to R2 under x-ui-vYYYY.MM.N/.
+  # R2 object-write tokens can also delete; this job never issues a delete.
+  # CORS is not configured here. Apply infra/r2-cors.json out of band.
+  deploy-web:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      # TBD: replace with the R2 bucket name once the bucket exists.
+      R2_BUCKET: TBD
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify tag matches package.json version
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#x-ui-v}"
+          pkg="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$pkg" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} is version '${tag}', but package.json is '${pkg}'"
+            exit 1
+          fi
+          echo "VERSION_PREFIX=x-ui-v${pkg}" >> "$GITHUB_ENV"
+
+      - name: Plan R2 uploads
+        id: plan
+        run: |
+          set -euo pipefail
+          delimiter="R2_PUTS_$(uuidgen | tr -d '-')"
+          {
+            echo "commands<<${delimiter}"
+            bash scripts/r2-web-release.sh plan
+            echo "${delimiter}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Fail if the version prefix already exists
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
+          wranglerVersion: 4.x
+          preCommands: bash scripts/r2-web-release.sh assert-absent
+          command: --version
+
+      - name: Upload web assets to R2
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
+          wranglerVersion: 4.x
+          command: ${{ steps.plan.outputs.commands }}
+
+      - name: Record x-ui.css SRI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          sri="$(bash scripts/r2-web-release.sh sri)"
+          url="https://ui.zanehu.ai/${VERSION_PREFIX}/x-ui.css"
+          {
+            echo "### x-ui.css"
+            echo ""
+            echo "- URL: ${url}"
+            echo "- SRI: \`${sri}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          notes="$(mktemp)"
+          section="$(mktemp)"
+          printf '### x-ui.css\n\nSRI: `%s`\n\n%s\n' "$sri" "$url" > "$section"
+
+          if gh release view "$GITHUB_REF_NAME" --json body --jq .body > "$notes" 2>/dev/null; then
+            if ! grep -Fq "$sri" "$notes"; then
+              printf '\n' >> "$notes"
+              cat "$section" >> "$notes"
+              gh release edit "$GITHUB_REF_NAME" --notes-file "$notes"
+            fi
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              --verify-tag \
+              --title "$GITHUB_REF_NAME" \
+              --notes-file "$section"
+          fi
