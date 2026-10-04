@@ -2,6 +2,7 @@
 # Append-only R2 upload of the web/dist tree.
 # This script never deletes objects and does not apply CORS.
 set -euo pipefail
+shopt -s inherit_errexit
 
 CACHE_CONTROL='public, max-age=31536000, immutable'
 
@@ -19,9 +20,9 @@ content_type() {
   local ext="${file##*.}"
   ext="${ext,,}"
   case "$ext" in
-    css) printf 'text/css' ;;
-    js) printf 'text/javascript' ;;
-    json) printf 'application/json' ;;
+    css) printf 'text/css; charset=utf-8' ;;
+    js) printf 'text/javascript; charset=utf-8' ;;
+    json) printf 'application/json; charset=utf-8' ;;
     woff) printf 'font/woff' ;;
     woff2) printf 'font/woff2' ;;
     ttf) printf 'font/ttf' ;;
@@ -72,14 +73,38 @@ require_build_web() {
   fi
 }
 
+# Write NUL-delimited find output to dest and fail if find fails.
+# Process substitution would hide find's exit status.
+find_print0() {
+  local dest=$1
+  local path=$2
+  shift 2
+  local status=0
+  set +e
+  find "$path" "$@" -print0 | sort -z > "$dest"
+  status=$?
+  set -e
+  if [ "$status" -ne 0 ]; then
+    echo "::error::failed to list ${path}" >&2
+    return 1
+  fi
+}
+
 check_outputs() {
-  local root file rel missing=0 extras=0 fonts=0
+  local root file rel missing=0 extras=0 fonts=0 list
   root="$(web_root)"
   if [ ! -d "$root" ]; then
     echo "::error::missing ${root} after build:web" >&2
     exit 1
   fi
+  list="$(mktemp)"
+  find_print0 "$list" "$root" ! -type d
   while IFS= read -r -d '' file; do
+    if [ -L "$file" ] || [ ! -f "$file" ]; then
+      echo "::error::${file} is not a regular file" >&2
+      extras=1
+      continue
+    fi
     rel="$(rel_key "$file")"
     if allowed_rel "$rel"; then
       case "$rel" in
@@ -89,10 +114,11 @@ check_outputs() {
       echo "::error::${root}/${rel} is not on the R2 upload allowlist" >&2
       extras=1
     fi
-  done < <(find "$root" -type f -print0 | sort -z)
+  done < "$list"
+  rm -f "$list"
   local required
   for required in x-ui.css theme-script.js xui.js manifest.json; do
-    if [ ! -f "${root}/${required}" ]; then
+    if [ ! -f "${root}/${required}" ] || [ -L "${root}/${required}" ]; then
       echo "::error::missing ${root}/${required} after build:web" >&2
       missing=1
     fi
@@ -108,11 +134,19 @@ check_outputs() {
 
 # NUL-delimited. Fonts, then theme-script.js, then xui.js, then manifest.json, then x-ui.css.
 list_upload_order() {
-  local root file
+  local root list file
   root="$(web_root)"
+  list="$(mktemp)"
+  find_print0 "$list" "${root}/fonts" -type f
   while IFS= read -r -d '' file; do
+    if [ -L "$file" ] || [ ! -f "$file" ]; then
+      echo "::error::${file} is not a regular file" >&2
+      rm -f "$list"
+      return 1
+    fi
     printf '%s\0' "$file"
-  done < <(find "${root}/fonts" -type f -print0 | sort -z)
+  done < "$list"
+  rm -f "$list"
   printf '%s\0' "${root}/theme-script.js"
   printf '%s\0' "${root}/xui.js"
   printf '%s\0' "${root}/manifest.json"
@@ -133,30 +167,54 @@ wrangler() {
   if [ -n "${WRANGLER_BIN:-}" ]; then
     "$WRANGLER_BIN" "$@"
   else
-    if [ -z "${WRANGLER_VERSION:-}" ]; then
-      echo "::error::WRANGLER_VERSION is required" >&2
-      exit 1
-    fi
-    npx --yes "wrangler@${WRANGLER_VERSION}" "$@"
+    npx --no-install wrangler "$@"
   fi
+}
+
+# wrangler 4.147.0 `r2 object get`:
+# fetchR2Objects returns null only on HTTP 404. The command then throws
+# UserError "The specified key does not exist." Any other status throws
+# APIError "Failed to fetch <resource> - <status>: <statusText>;" and may
+# attach errors[0].code. 401/403/400/409/412/429/5xx are not a missing key.
+# The destination file is created before the fetch, so hash it only on exit 0.
+is_missing_object() {
+  local log=$1
+  if grep -Eq 'Failed to fetch .+ - (400|401|403|409|412|429|500|502|503|504):' "$log"; then
+    return 1
+  fi
+  if grep -Fq 'The specified key does not exist.' "$log"; then
+    return 0
+  fi
+  if grep -Eq 'Failed to fetch .+ - 404:' "$log"; then
+    return 0
+  fi
+  if grep -Fq 'NoSuchKey' "$log"; then
+    return 0
+  fi
+  if grep -Eq '"code"[[:space:]]*:[[:space:]]*10007([^0-9]|$)' "$log"; then
+    return 0
+  fi
+  return 1
 }
 
 # Prints missing, match, or differ. Unexpected wrangler errors return 1.
 object_state() {
   local rel=$1
   local localfile=$2
-  local tmp out err status local_hash remote_hash
+  local tmp out err status local_hash remote_hash combined
   tmp="$(mktemp)"
   out="$(mktemp)"
   err="$(mktemp)"
+  combined="$(mktemp)"
   set +e
   wrangler r2 object get "${R2_BUCKET}/${VERSION_PREFIX}/${rel}" --file "$tmp" --remote >"$out" 2>"$err"
   status=$?
   set -e
+  cat "$out" "$err" > "$combined"
   if [ "$status" -eq 0 ]; then
     local_hash="$(sha256_file "$localfile")"
     remote_hash="$(sha256_file "$tmp")"
-    rm -f "$tmp" "$out" "$err"
+    rm -f "$tmp" "$out" "$err" "$combined"
     if [ "$local_hash" = "$remote_hash" ]; then
       printf 'match\n'
     else
@@ -164,14 +222,14 @@ object_state() {
     fi
     return 0
   fi
-  if grep -q "The specified key does not exist" "$err" "$out"; then
-    rm -f "$tmp" "$out" "$err"
+  if is_missing_object "$combined"; then
+    rm -f "$tmp" "$out" "$err" "$combined"
     printf 'missing\n'
     return 0
   fi
   echo "::error::Could not read ${VERSION_PREFIX}/${rel} (wrangler exit ${status})." >&2
-  cat "$out" "$err" >&2
-  rm -f "$tmp" "$out" "$err"
+  cat "$combined" >&2
+  rm -f "$tmp" "$out" "$err" "$combined"
   return 1
 }
 
@@ -224,10 +282,13 @@ upload_one() {
 
 upload() {
   preflight
-  local file
+  local list file
+  list="$(mktemp)"
+  list_upload_order > "$list"
   while IFS= read -r -d '' file; do
     upload_one "$file"
-  done < <(list_upload_order)
+  done < "$list"
+  rm -f "$list"
 }
 
 sri() {
