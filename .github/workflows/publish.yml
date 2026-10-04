@@ -40,8 +40,8 @@ jobs:
         run: |
           set -euo pipefail
           tag="${GITHUB_REF_NAME#x-ui-v}"
-          if ! [[ "$tag" =~ ^[0-9]{4}\.(1[0-2]|[1-9])\.[1-9][0-9]*$ ]]; then
-            echo "::error::Tag version '${tag}' must match ^[0-9]{4}.(1[0-2]|[1-9]).[1-9][0-9]*$ (no zero-padded month; npm rejects 2026.09.1)"
+          if ! [[ "$tag" =~ ^20[0-9]{2}\.(1[0-2]|[1-9])\.[1-9][0-9]*$ ]]; then
+            echo "::error::Tag version '${tag}' must match ^20[0-9]{2}.(1[0-2]|[1-9]).[1-9][0-9]*$ (years 2000-2099, no zero-padded month; npm rejects 2026.09.1)"
             exit 1
           fi
           pkg="$(node -p "require('./package.json').version")"
@@ -155,8 +155,7 @@ jobs:
     permissions:
       contents: read
     env:
-      # TBD: replace with the R2 bucket name once the bucket exists.
-      R2_BUCKET: TBD
+      R2_BUCKET: ${{ vars.R2_BUCKET }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
@@ -277,8 +276,7 @@ jobs:
     permissions:
       contents: read
     env:
-      # TBD: replace with the R2 bucket name once the bucket exists.
-      R2_BUCKET: TBD
+      R2_BUCKET: ${{ vars.R2_BUCKET }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:

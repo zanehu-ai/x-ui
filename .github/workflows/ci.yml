@@ -25,6 +25,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: R2 release script check
+        run: bash scripts/check-r2-web-release.sh
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22

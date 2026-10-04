@@ -5,6 +5,9 @@ set -euo pipefail
 shopt -s inherit_errexit
 
 CACHE_CONTROL='public, max-age=31536000, immutable'
+# Bucket root, outside any x-ui-v* prefix. Wrangler 4.147.0 reports every
+# HTTP 404 as a missing key, including a wrong bucket or account.
+SENTINEL_KEY='_xui-sentinel.txt'
 
 usage() {
   echo "usage: r2-web-release.sh require-build-web|check-outputs|preflight|upload|sri" >&2
@@ -57,7 +60,7 @@ allowed_rel() {
 
 require_bucket() {
   if [ -z "${R2_BUCKET:-}" ] || [ "$R2_BUCKET" = "TBD" ]; then
-    echo "::error::R2_BUCKET is still TBD. Set it in .github/workflows/publish.yml before releasing." >&2
+    echo "::error::R2_BUCKET is empty. Set the GitHub variable R2_BUCKET (repository variable or release environment variable). The workflow reads vars.R2_BUCKET. See docs/RELEASE.md." >&2
     exit 1
   fi
   if [ -z "${VERSION_PREFIX:-}" ]; then
@@ -134,19 +137,22 @@ check_outputs() {
 
 # NUL-delimited. Fonts, then theme-script.js, then xui.js, then manifest.json, then x-ui.css.
 list_upload_order() {
-  local root list file
+  local root list file bad=0
   root="$(web_root)"
   list="$(mktemp)"
   find_print0 "$list" "${root}/fonts" -type f
   while IFS= read -r -d '' file; do
     if [ -L "$file" ] || [ ! -f "$file" ]; then
       echo "::error::${file} is not a regular file" >&2
-      rm -f "$list"
-      return 1
+      bad=1
+      break
     fi
     printf '%s\0' "$file"
   done < "$list"
   rm -f "$list"
+  if [ "$bad" -ne 0 ]; then
+    return 1
+  fi
   printf '%s\0' "${root}/theme-script.js"
   printf '%s\0' "${root}/xui.js"
   printf '%s\0' "${root}/manifest.json"
@@ -171,14 +177,14 @@ wrangler() {
   fi
 }
 
-# wrangler 4.147.0 `r2 object get`:
-# fetchR2Objects returns null only on HTTP 404. The command then throws
-# UserError "The specified key does not exist." Any other status throws
-# APIError "Failed to fetch <resource> - <status>: <statusText>;" and may
-# attach errors[0].code. 401/403/400/409/412/429/5xx are not a missing key.
-# The destination file is created before the fetch, so hash it only on exit 0.
+# A release-key 404 is "missing" only after require_sentinel succeeds.
+# Until then, wrangler 4.147.0 cannot tell a missing key from a wrong bucket
+# or a wrong CLOUDFLARE_ACCOUNT_ID (both are HTTP 404).
 is_missing_object() {
   local log=$1
+  if [ "${SENTINEL_OK:-}" != 1 ]; then
+    return 1
+  fi
   if grep -Eq 'Failed to fetch .+ - (400|401|403|409|412|429|500|502|503|504):' "$log"; then
     return 1
   fi
@@ -197,10 +203,20 @@ is_missing_object() {
   return 1
 }
 
+# wrangler 4.147.0 `r2 object get`:
+# fetchR2Objects returns null only on HTTP 404. The command then throws
+# UserError "The specified key does not exist." Any other status throws
+# APIError "Failed to fetch <resource> - <status>: <statusText>;" and may
+# attach errors[0].code. 401/403/400/409/412/429/5xx are not a missing key.
+# The destination file is created before the fetch, so hash it only on exit 0.
 # Prints missing, match, or differ. Unexpected wrangler errors return 1.
 object_state() {
   local rel=$1
   local localfile=$2
+  if [ "${SENTINEL_OK:-}" != 1 ]; then
+    echo "::error::Refusing to read ${VERSION_PREFIX}/${rel} before ${SENTINEL_KEY} has been read from the bucket root." >&2
+    return 1
+  fi
   local tmp out err status local_hash remote_hash combined
   tmp="$(mktemp)"
   out="$(mktemp)"
@@ -233,8 +249,37 @@ object_state() {
   return 1
 }
 
-preflight() {
+# GET ${R2_BUCKET}/${SENTINEL_KEY}. Fail closed unless wrangler exits 0.
+# A missing sentinel, a mistyped bucket, and a wrong account id all look
+# like "The specified key does not exist."
+require_sentinel() {
   require_bucket
+  if [ "${SENTINEL_OK:-}" = 1 ]; then
+    return 0
+  fi
+  local tmp out err status combined
+  tmp="$(mktemp)"
+  out="$(mktemp)"
+  err="$(mktemp)"
+  combined="$(mktemp)"
+  set +e
+  wrangler r2 object get "${R2_BUCKET}/${SENTINEL_KEY}" --file "$tmp" --remote >"$out" 2>"$err"
+  status=$?
+  set -e
+  cat "$out" "$err" > "$combined"
+  rm -f "$tmp" "$out" "$err"
+  if [ "$status" -ne 0 ]; then
+    echo "::error::Could not read ${R2_BUCKET}/${SENTINEL_KEY}. Refusing to treat a release-key 404 as missing. Wrangler 4.147.0 returns 'The specified key does not exist.' for a wrong R2_BUCKET or a wrong CLOUDFLARE_ACCOUNT_ID as well as a missing key. Create ${SENTINEL_KEY} at the bucket root, outside any x-ui-v* prefix. See docs/RELEASE.md." >&2
+    cat "$combined" >&2
+    rm -f "$combined"
+    exit 1
+  fi
+  rm -f "$combined"
+  SENTINEL_OK=1
+}
+
+preflight() {
+  require_sentinel
   check_outputs
   local root css_state manifest_state
   root="$(web_root)"
@@ -281,6 +326,7 @@ upload_one() {
 }
 
 upload() {
+  require_sentinel
   preflight
   local list file
   list="$(mktemp)"
