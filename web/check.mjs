@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { buildWeb } from './build.mjs'
 import { checkMenuScript } from './check-menu.mjs'
+import { checkCopyScript } from './check-copy.mjs'
 import { lintCss, tokenHexMap } from './lint/check-consumer.mjs'
 import { findMockupMarkers } from './lint/check-tbc.mjs'
 import { loadTokens, renderTokenModules } from './token-model.mjs'
@@ -156,6 +157,7 @@ manifest.licenses?.forEach((entry, index) => {
 })
 
 for (const error of await checkMenuScript(path.join(distDir, 'xui.js'))) fail(error)
+for (const error of await checkCopyScript(path.join(distDir, 'xui.js'))) fail(error)
 
 const hexes = tokenHexMap(tokens)
 const badCss = '.btn { color: #000000; }\n.xui-btn { padding: 1px; }\n:root { --brand-color: red; }\n'

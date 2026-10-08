@@ -30,7 +30,7 @@ var CHECK='<path d="M20 6 9 17l-5-5"/>';
 document.querySelectorAll(".xui-copy-button").forEach(function(b){b.hidden=false;var t=b.querySelector("span"),l0=t.textContent,svg=b.querySelector("svg"),i0=svg.innerHTML,st=b.nextElementSibling,tm;
  b.addEventListener("click",function(){var v=b.getAttribute("data-copy"),ok=function(){clearTimeout(tm);b.setAttribute("data-copied","");t.textContent=b.getAttribute("data-copied-label");svg.innerHTML=CHECK;
    if(st&&st.classList.contains("xui-copy-button__status"))st.textContent=st.getAttribute("data-copied-msg");
-   tm=setTimeout(function(){b.removeAttribute("data-copied");t.textContent=l0;svg.innerHTML=i0;if(st)st.textContent=""},2000)};
+   tm=setTimeout(function(){b.removeAttribute("data-copied");t.textContent=l0;svg.innerHTML=i0;if(st&&st.classList.contains("xui-copy-button__status"))st.textContent=""},2000)};
  if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(v).then(ok,function(){fb(v)&&ok()})}else if(fb(v))ok()})});
 function fb(v){var a=document.createElement("textarea");a.value=v;a.setAttribute("readonly","");a.style.position="fixed";a.style.opacity="0";document.body.appendChild(a);a.select();var r=false;try{r=document.execCommand("copy")}catch(e){}document.body.removeChild(a);return r}
 sync()})();

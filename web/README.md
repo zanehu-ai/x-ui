@@ -12,7 +12,7 @@ Set the brand on `<html>`: `zane` or `opcorbit`.
 
 Put the theme script in `<head>` **before** the stylesheet, with no `defer` and no `async`, so the theme is set before first paint. Load `xui.js` with `defer` at the end of `<body>`.
 
-Read `integrity` from `manifest.json` after `npm run build:web` (fields `sri.x-ui.css`, `sri.theme-script.js`, `sri.xui.js`). The public URL uses the calendar release, `x-ui-vYYYY.MM.N`. The first planned tag is `x-ui-v2026.10.1`. This package’s `version` stays `0.1.8` until that release PR.
+Read `integrity` from `manifest.json` after `npm run build:web` (fields `sri.x-ui.css`, `sri.theme-script.js`, `sri.xui.js`). The public URL uses the calendar release, `x-ui-vYYYY.M.N`. The first planned tag is `x-ui-v2026.10.1`. This package’s `version` stays `0.1.8` until that release PR.
 
 ```html
 <!doctype html>
@@ -22,20 +22,20 @@ Read `integrity` from `manifest.json` after `npm run build:web` (fields `sri.x-u
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="color-scheme" content="dark light">
     <script
-      src="https://ui.zanehu.ai/x-ui-vYYYY.MM.N/theme-script.js"
+      src="https://ui.zanehu.ai/x-ui-vYYYY.M.N/theme-script.js"
       integrity="sha384-…"
       crossorigin="anonymous"
     ></script>
     <link
       rel="stylesheet"
-      href="https://ui.zanehu.ai/x-ui-vYYYY.MM.N/x-ui.css"
+      href="https://ui.zanehu.ai/x-ui-vYYYY.M.N/x-ui.css"
       integrity="sha384-…"
       crossorigin="anonymous"
     >
   </head>
   <body>
     <script
-      src="https://ui.zanehu.ai/x-ui-vYYYY.MM.N/xui.js"
+      src="https://ui.zanehu.ai/x-ui-vYYYY.M.N/xui.js"
       integrity="sha384-…"
       crossorigin="anonymous"
       defer
