@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-label="Abstract orbit: concentric rings around a core with protocol nodes">
+<!-- Monochrome (2026-10-04 21:51): black field, white 1px lines, secondary-grey labels. No glow, no grid texture. -->
+<rect width="640" height="480" fill="#000000"/>
+<g fill="none" stroke="#FFFFFF" stroke-width="1" transform="rotate(-18 320 240)">
+<ellipse cx="320" cy="240" rx="250" ry="110" stroke-dasharray="2 6"/>
+<ellipse cx="320" cy="240" rx="190" ry="80"/>
+<ellipse cx="320" cy="240" rx="125" ry="52"/>
+</g>
+<circle cx="320" cy="240" r="34" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+<circle cx="320" cy="240" r="12" fill="#FFFFFF"/>
+<g fill="#FFFFFF"><circle cx="92" cy="300" r="5"/><circle cx="520" cy="150" r="5"/><circle cx="214" cy="170" r="4"/><circle cx="430" cy="300" r="4"/><circle cx="560" cy="250" r="4"/><circle cx="150" cy="230" r="4"/></g>
+<g font-family="Geist Mono,ui-monospace,monospace" font-size="13" fill="#B3B3B3">
+<text x="104" y="305">OPC UA</text><text x="532" y="155">MQTT</text><text x="226" y="166">EDGE</text><text x="442" y="306">API</text><text x="572" y="255">PLC</text><text x="104" y="226">MES</text></g>
+</svg>

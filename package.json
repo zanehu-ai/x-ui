@@ -7,7 +7,11 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "web/tokens.js",
+    "web/tokens.d.ts",
+    "web/tokens.ts",
+    "web/README.md"
   ],
   "repository": {
     "type": "git",
@@ -20,7 +24,10 @@
     "build": "rm -rf dist && tsc --declaration --outDir dist && node scripts/fix-dist-imports.mjs",
     "typecheck": "tsc --noEmit",
     "prepare": "npm run build",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "build:web": "node web/build.mjs",
+    "build:web:dev": "node web/build.mjs --dev",
+    "check:web": "node web/check.mjs"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
@@ -52,10 +59,17 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@fontsource/barlow-condensed": "^5.3.0",
+    "@fontsource/geist": "^5.3.0",
+    "@fontsource/geist-mono": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
     "@tanstack/react-query": "^5.100.9",
     "@tanstack/react-table": "^8.21.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "jsdom": "^29.1.1",
+    "lightningcss": "^1.33.0",
     "lucide-react": "^0.577.0",
     "typescript": "^5.9.3"
   }
