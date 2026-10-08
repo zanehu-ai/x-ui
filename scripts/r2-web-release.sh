@@ -283,18 +283,35 @@ require_sentinel() {
 preflight() {
   require_sentinel
   check_outputs
-  local root css_state manifest_state
-  root="$(web_root)"
-  css_state="$(object_state "x-ui.css" "${root}/x-ui.css")"
-  manifest_state="$(object_state "manifest.json" "${root}/manifest.json")"
-  if [ "$css_state" = "differ" ] || [ "$manifest_state" = "differ" ]; then
-    echo "::error::Refusing to upload. ${VERSION_PREFIX}/x-ui.css is ${css_state} and manifest.json is ${manifest_state}. An existing object must be byte-identical." >&2
-    exit 1
-  fi
-  if [ "$css_state" = "match" ] && [ "$manifest_state" = "match" ]; then
-    echo "x-ui.css and manifest.json match the local build; idempotent re-run."
+  local list file rel state all_match=1
+  list="$(mktemp)"
+  # Share the upload list so every immutable object is checked before publish.
+  list_upload_order > "$list"
+  while IFS= read -r -d '' file; do
+    rel="$(rel_key "$file")"
+    # Keep this outside an if/! condition: conditional calls disable errexit
+    # inside object_state and can turn failed hashes into an empty-string match.
+    state="$(object_state "$rel" "$file")"
+    case "$state" in
+      match) ;;
+      missing) all_match=0 ;;
+      differ)
+        echo "::error::Refusing to upload. ${VERSION_PREFIX}/${rel} differs from the local build. An existing object must be byte-identical." >&2
+        rm -f "$list"
+        return 1
+        ;;
+      *)
+        echo "::error::unexpected state '${state}' for ${rel}" >&2
+        rm -f "$list"
+        return 1
+        ;;
+    esac
+  done < "$list"
+  rm -f "$list"
+  if [ "$all_match" -eq 1 ]; then
+    echo "All release assets match the local build; idempotent re-run."
   else
-    echo "Release prefix is free to continue (x-ui.css=${css_state}, manifest.json=${manifest_state})."
+    echo "Release prefix is free to continue; every existing asset is byte-identical."
   fi
 }
 

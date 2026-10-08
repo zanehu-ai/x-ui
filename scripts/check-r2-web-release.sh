@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Scripted checks for the R2 sentinel gate, empty R2_BUCKET, and the tag regex.
+# Scripted checks for immutable-asset preflight, the sentinel gate, and tag policy.
 set -euo pipefail
 shopt -s inherit_errexit
 
@@ -66,6 +66,8 @@ printf 'theme' > "$tree/theme-script.js"
 printf 'runtime' > "$tree/xui.js"
 printf '{"ok":true}' > "$tree/manifest.json"
 printf 'font' > "$tree/fonts/a.woff2"
+mkdir -p "$tree/fonts/nested"
+printf 'nested font' > "$tree/fonts/nested/b.woff2"
 
 log="$workdir/wrangler.log"
 puts="$workdir/puts"
@@ -121,6 +123,15 @@ if [[ "$key" == *"$EXPECT_SENTINEL"* ]]; then
 fi
 case "$mode" in
   get)
+    rel="${key#*/}"
+    if [ -n "${MOCK_CONFLICT_REL:-}" ] && [ "$rel" = "$MOCK_CONFLICT_REL" ]; then
+      printf 'conflicting remote bytes\n' > "$file"
+      exit 0
+    fi
+    if [ -n "${MOCK_MATCH_REL:-}" ] && [ "$rel" = "$MOCK_MATCH_REL" ]; then
+      cp "${MOCK_TREE}/${rel}" "$file"
+      exit 0
+    fi
     case "${MOCK_RELEASE:-missing}" in
       missing)
         echo "The specified key does not exist." >&2
@@ -175,6 +186,8 @@ run_release() {
     MOCK_SENTINEL="$sentinel_mode" \
     EXPECT_SENTINEL="$sentinel" \
     MOCK_RELEASE="$release_mode" \
+    MOCK_CONFLICT_REL="${conflict_rel:-}" \
+    MOCK_MATCH_REL="${match_rel:-}" \
     MOCK_TREE="$tree" \
     bash "$SCRIPT" "$cmd" >"$stdout" 2>"$stderr"
   status=$?
@@ -249,7 +262,7 @@ run_release preflight
 sentinel_read_first
 if [ "$status" -ne 0 ]; then
   cat "$stderr" >&2
-  fail "matching css and manifest should pass preflight"
+  fail "matching release assets should pass preflight"
 fi
 grep -Fq 'idempotent re-run' "$stdout" || fail "match should be an idempotent re-run"
 if [ -s "$puts" ]; then
@@ -261,7 +274,7 @@ release_mode="differ"
 run_release preflight
 sentinel_read_first
 if [ "$status" -eq 0 ]; then
-  fail "differing css or manifest should fail preflight"
+  fail "differing release assets should fail preflight"
 fi
 grep -Fq 'byte-identical' "$stderr" || fail "differ should refuse before upload"
 if [ -s "$puts" ]; then
@@ -316,7 +329,80 @@ put_line="$(grep -n 'object put' "$log" | head -n 1 | cut -d: -f1)"
 if [ -z "$sent_line" ] || [ -z "$put_line" ] || [ "$sent_line" -ge "$put_line" ]; then
   fail "sentinel was not read before the first put"
 fi
-pass "upload reads the sentinel before putting"
+expected_puts="$workdir/expected-puts"
+printf '%s\n' x-ui-v2026.10.1/fonts/a.woff2 x-ui-v2026.10.1/fonts/nested/b.woff2 \
+  x-ui-v2026.10.1/theme-script.js x-ui-v2026.10.1/xui.js \
+  x-ui-v2026.10.1/manifest.json x-ui-v2026.10.1/x-ui.css > "$expected_puts"
+cmp "$expected_puts" "$puts" || fail "upload order changed"
+pass "upload reads the sentinel before putting and preserves order"
+
+# Partial upload: CSS/manifest can be absent while any other asset conflicts.
+# A local marker models the workflow dependency, without invoking npm/R2.
+published="$workdir/published"
+sentinel_mode="ok"
+release_mode="missing"
+for conflict_rel in fonts/a.woff2 fonts/nested/b.woff2 theme-script.js xui.js manifest.json x-ui.css; do
+  rm -f "$published"
+  run_release preflight
+  if [ "$status" -eq 0 ]; then
+    printf 'would publish' > "$published"
+  fi
+  sentinel_read_first
+  if [ -f "$published" ]; then
+    fail "conflicting ${conflict_rel} passed preflight and reached publication"
+  fi
+  grep -Fq "x-ui-v2026.10.1/${conflict_rel} differs" "$stderr" || fail "conflict error must name ${conflict_rel}"
+  if [ -s "$puts" ]; then
+    fail "preflight conflict should never put"
+  fi
+  run_release upload
+  if [ "$status" -eq 0 ] || [ -s "$puts" ]; then
+    fail "upload with conflicting ${conflict_rel} must fail before any put"
+  fi
+  pass "partial-upload conflict ${conflict_rel} blocks publication and all puts"
+done
+unset conflict_rel
+
+# A matching font plus missing assets can resume, with all objects read-only.
+match_rel="fonts/nested/b.woff2"
+run_release preflight
+if [ "$status" -ne 0 ]; then
+  cat "$stderr" >&2
+  fail "matching font plus missing assets should pass preflight"
+fi
+if [ -s "$puts" ]; then fail "mixed preflight must not put"; fi
+expected_reads="$workdir/expected-reads"
+actual_reads="$workdir/actual-reads"
+cat > "$expected_reads" << 'EOF'
+fonts/a.woff2
+fonts/nested/b.woff2
+theme-script.js
+xui.js
+manifest.json
+x-ui.css
+EOF
+sed -n 's/.*object get test-bucket\/x-ui-v2026.10.1\/\([^ ]*\) .*/\1/p' "$log" > "$actual_reads"
+cmp "$expected_reads" "$actual_reads" || fail "preflight list must cover every asset in upload order"
+pass "mixed match/missing preflight checks every upload asset"
+unset match_rel
+
+# Hash failure must not become two empty hashes and a false match.
+hash_errors="$workdir/hash-errors"
+mkdir -p "$hash_errors"
+cat > "$hash_errors/sha256sum" << 'EOF'
+#!/bin/bash
+echo "injected hash failure" >&2
+exit 1
+EOF
+chmod +x "$hash_errors/sha256sum"
+release_mode="match"
+PATH="$hash_errors:$PATH" run_release preflight
+if [ "$status" -eq 0 ]; then
+  fail "hash failure passed preflight as an empty-string match"
+fi
+grep -Fq 'injected hash failure' "$stderr" || fail "hash fault was not exercised"
+if [ -s "$puts" ]; then fail "hash-failed preflight must not put"; fi
+pass "hash failure fails closed before publication"
 
 if WEB_ROOT="$tree" R2_BUCKET="" VERSION_PREFIX=x-ui-v2026.10.1 WRANGLER_BIN="$bomb" \
   bash "$SCRIPT" preflight >"$stdout" 2>"$stderr"; then

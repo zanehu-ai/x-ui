@@ -62,3 +62,17 @@ Jobs that use an environment can still read repository secrets. A copy at repo l
 ## Cutting a release
 
 After the version on `main` matches the tag you want, push `x-ui-vYYYY.M.N` on a commit that is on `main`. Consumers should pin the exact version. `^2026.10.1` matches every later `2026.x` release.
+
+## Immutable-asset preflight
+
+Before npm publication, the read-only R2 preflight compares every file in the same
+ordered asset list used by the uploader: fonts, theme script, runtime script,
+manifest, then stylesheet. Missing objects are allowed after the sentinel check;
+any existing object must have identical bytes. This also checks partially uploaded
+prefixes whose CSS and manifest are still absent. Known conflicts stop publication
+and stop all R2 writes. Matching objects can be resumed without overwriting them.
+
+The uploader repeats preflight and rechecks each object before putting it. These
+checks do not eliminate a concurrent external writer changing R2 after preflight
+or between a read and a put. Release concurrency and restricted bucket access
+remain required; generic cross-registry atomic publication is not guaranteed.
