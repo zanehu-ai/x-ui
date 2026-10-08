@@ -94,9 +94,8 @@ import { createClient } from '@zanehu-ai/synapse-ui'
 
 ## 发布
 
-推送 tag 触发 GitHub Actions 自动发布到 GitHub Packages：
+发布流程以 [docs/RELEASE.md](docs/RELEASE.md) 为准。版本采用 `YYYY.M.N`（月份不补零，计数从 1 开始），tag 为 `x-ui-vYYYY.M.N`；tag 去掉 `x-ui-v` 后必须与已提交的 `package.json` 版本一致。
 
-```bash
-npm version patch  # 或 minor / major
-git push origin main --tags
-```
+先通过版本变更 PR 更新 `package.json`、lockfile 及相关生成文件，并完成检查和 Albert 的 main 合并审批。当前 `0.1.8` 不可直接用于日历版本发布。
+
+完成 `docs/RELEASE.md` 的 tag ruleset、`release` environment、R2 及凭证配置要求，并获得 Zane 对本次发布的明确许可后，才可手动创建并单独推送匹配的 `x-ui-vYYYY.M.N` tag；tag 必须指向 main 上的已审查提交。工作流不会自动改写版本，每个 release environment job 仍需各自审批。不要使用 `npm version patch/minor/major` 或批量 `--tags` 推送来代替这些步骤。
