@@ -11,7 +11,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/zanehu-ai/synapse-ui.git"
+    "url": "https://github.com/zanehu-ai/x-ui.git"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
@@ -57,6 +57,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "lucide-react": "^0.577.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "wrangler": "4.147.0"
   }
 }

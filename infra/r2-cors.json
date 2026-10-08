@@ -1,0 +1,15 @@
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": [
+          "https://zanehu.ai",
+          "https://www.zanehu.ai",
+          "https://opcorbit.com",
+          "https://www.opcorbit.com"
+        ],
+        "methods": ["GET", "HEAD"]
+      }
+    }
+  ]
+}
