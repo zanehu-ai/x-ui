@@ -139,3 +139,6 @@ export * from './opcorbit/domain/queries/control'
 export * from './opcorbit/domain/queries/keys'
 export * from './opcorbit/domain/schemas/common'
 export * from './opcorbit/domain/tables/columns'
+
+// Opt-in presentation compatibility for detail and configuration screens.
+export * as presentation from './presentation/index'
