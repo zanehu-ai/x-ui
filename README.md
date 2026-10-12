@@ -100,3 +100,101 @@ import { createClient } from '@zanehu-ai/synapse-ui'
 npm version patch  # 或 minor / major
 git push origin main --tags
 ```
+
+## Opt-in detail and configuration presentation
+
+The `presentation` namespace provides reusable presentation blocks extracted
+from the X-core console. Use it for the existing Cargo and Game screen behavior:
+
+```tsx
+import { presentation } from '@zanehu-ai/synapse-ui'
+
+const { SimpleDialog, DescriptionSection, DescriptionItem, ConfigFieldGrid } = presentation
+
+<SimpleDialog
+  open={open}
+  title="Details"
+  onClose={close}
+  footer={<button onClick={close}>Close</button>}
+>
+  <DescriptionSection title="Account">
+    <DescriptionItem label="Balance">{presentation.renderMoney(balance, 'USD')}</DescriptionItem>
+  </DescriptionSection>
+  <ConfigFieldGrid
+    fields={[{ key: 'enabled', label: 'Enabled' }]}
+    row={{ enabled: true }}
+    labels={{ emptyValue: '-', yes: 'Yes', no: 'No' }}
+  />
+</SimpleDialog>
+```
+
+This is an additive API. The existing root `SimpleDialog`, `StatusBadge`,
+`Button`, `Badge`, `ToggleChip`, and `format*` functions retain their defaults.
+The namespace intentionally preserves the consuming console's behavior:
+
+- `SimpleDialog` has a scrollable body, optional `bodyClassName`, sticky `footer`,
+  and `modal` (default `true`). Outside pointer/focus interaction does not close
+  the dialog. Escape and the close control still call `onClose`.
+- `StatusBadge` supports a custom child label with color chosen from `status`.
+  `Badge` uses neutral styling for default/secondary/outline variants; `Button`
+  disables itself and displays `Loading...` while loading. `ToggleChip` preserves
+  the existing pressed-state callback and explicit button type.
+- `DescriptionSection`, `DescriptionItem`, and `DescriptionSummary` render detail
+  layouts; empty item values use an em dash while numeric zero stays visible.
+- `ConfigFieldGrid` requires explicit `labels` (`emptyValue`, `yes`, `no`) from
+  the host locale. It needs no translation provider and retains field renderers,
+  hints, and JSON display.
+- `renderDateTime` treats timezone-less backend timestamps as UTC and displays
+  viewer-local `YYYY-MM-DD HH:mm:ss`. Non-date and invalid values retain their
+  former display behavior. `renderMoney` accepts decimal objects, appends an
+  optional currency code, and preserves missing/invalid values. These functions
+  are deliberately distinct from the existing `formatDateTime`/`formatMoney`.
+
+Consumers must include this package's `dist/**/*.js` in their Tailwind source
+scan, as for the existing components. No CSS runtime or additional provider is
+introduced.
+
+### Consumer migration after release
+
+This checkout keeps its existing package version. The new API must be published
+in a new release before a consumer commits a dependency on it; published `0.1.8`
+does not include `presentation`. A local `npm pack` artifact is for validation
+only and must not become a committed file path dependency.
+
+Replace generic implementations with package re-exports. For example:
+
+```tsx
+import { presentation } from '@zanehu-ai/synapse-ui'
+
+export const { Badge, Button, SimpleDialog, StatusBadge, ToggleChip } = presentation
+export type BadgeProps = presentation.BadgeProps
+export type ButtonProps = presentation.ButtonProps
+export type SimpleDialogProps = presentation.SimpleDialogProps
+export type StatusBadgeProps = presentation.StatusBadgeProps
+```
+
+Keep only the host's locale adapter around `ConfigFieldGrid`; pass the existing
+translations rather than changing locale behavior. Preserve optional explicit
+host labels for independently hosted product features:
+
+```tsx
+import { presentation } from '@zanehu-ai/synapse-ui'
+import { useTranslation } from '../i18n'
+
+export type ConfigField<T> = presentation.ConfigField<T>
+type Props<T extends Record<string, unknown>> = Omit<presentation.ConfigFieldGridProps<T>, 'labels'> & { labels?: presentation.ConfigFieldLabels }
+
+export function ConfigFieldGrid<T extends Record<string, unknown>>({ labels, ...props }: Props<T>) {
+  const { t } = useTranslation()
+  return <presentation.ConfigFieldGrid {...props} labels={labels ?? {
+    emptyValue: t('common.empty-value'), yes: t('common.yes'), no: t('common.no'),
+  }} />
+}
+```
+
+Cargo detail pages and Game configuration pages already use these blocks.
+Application auth, tenant selection, permission checks, and API transport stay
+with the host; this presentation extraction does not replace them.
+
+Run `npm test` to build the published entry and exercise the presentation
+contracts, including the unchanged root defaults, with Node's test runner.

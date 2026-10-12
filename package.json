@@ -20,7 +20,8 @@
     "build": "rm -rf dist && tsc --declaration --outDir dist && node scripts/fix-dist-imports.mjs",
     "typecheck": "tsc --noEmit",
     "prepare": "npm run build",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test": "npm run build && node --test tests/*.test.mjs"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
@@ -56,6 +57,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "jsdom": "^29.1.1",
     "lucide-react": "^0.577.0",
     "typescript": "^5.9.3"
   }

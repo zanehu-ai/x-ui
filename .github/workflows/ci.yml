@@ -34,5 +34,5 @@ jobs:
       - name: TypeScript Check
         run: npx tsc --noEmit
 
-      - name: Build
-        run: npx tsc --declaration --outDir dist
+      - name: Build and test public package
+        run: npm test
