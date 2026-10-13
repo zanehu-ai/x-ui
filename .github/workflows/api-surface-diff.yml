@@ -42,7 +42,7 @@ jobs:
           # still creates the output dir. Treat <FLOOR generated files as
           # "tsc failed silently" so the diff step does not compare two
           # empty dirs and falsely report "no removed exports — additive".
-          # synapse-ui has 30+ public surface modules; floor at 10 is
+          # x-ui has 30+ public surface modules; floor at 10 is
           # generous.
           FLOOR=10
           FILE_COUNT=0
@@ -183,7 +183,7 @@ jobs:
                 echo "Base produced \`$BASE_COUNT\` .d.ts files but HEAD only \`$HEAD_COUNT\` (below floor=10)."
                 echo ""
                 echo "Because base built cleanly, tsc itself works; HEAD'\''s shrinkage is one of:"
-                echo "1. **Legitimate consolidation refactor** — many exports merged/removed. Downstream consumers (opcorbit/console, opcorbit/cargo-portal) WILL break and need coordinated upgrade."
+                echo "1. **Legitimate consolidation refactor** — many exports merged/removed. Downstream consumers (x-console, cargo/apps/cargo-portal) WILL break and need coordinated upgrade."
                 echo "2. **tsc broken on HEAD** — HEAD introduces a TS compile error that aborts declaration emission. Fix the build first."
                 echo ""
                 echo "Either way, **do not merge without explicit reviewer approval**. Diff is captured below for inspection."
@@ -212,7 +212,7 @@ jobs:
                 echo "- Lines removed (potential breaking changes): \`$REMOVED\`"
                 echo ""
                 if [ "$REMOVED" -gt "0" ]; then
-                  echo "**Heads up**: removed exports or changed signatures may break downstream consumers (opcorbit/console, opcorbit/cargo-portal). Verify before merge."
+                  echo "**Heads up**: removed exports or changed signatures may break downstream consumers (x-console, cargo/apps/cargo-portal). Verify before merge."
                   echo ""
                   echo "First 80 lines of diff:"
                   echo '```diff'

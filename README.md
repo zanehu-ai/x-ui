@@ -1,8 +1,20 @@
 # x-ui
 
-Shared React components, frontend utilities and OpcOrbit API primitives. The repository is `x-ui`; the npm package remains **`@zanehu-ai/synapse-ui`**.
+Shared React components, frontend utilities and OpcOrbit API primitives. The repository is `x-ui`; the npm package is now **`@zanehu-ai/x-ui`**.
 
 [package.json](package.json) defines dependencies and build scripts; [src/index.ts](src/index.ts) defines the root API. Source lives in `src/` and the package ships compiled JavaScript and declarations in `dist/`. This library has no standalone application or development server.
+
+## Local package-name migration
+
+The new `@zanehu-ai/x-ui` identity is unpublished. Console uses the local `0.2.0-rc.0` candidate. Core and Cargo retain the released `0.1.8` implementation through an identity-only compatibility repack; this does not upgrade their UI or API behavior.
+
+```bash
+node scripts/prepare-compat-package.mjs --destination /path/to/consumer/.local-packages
+# Offline alternative, using an intact installed original package:
+node scripts/prepare-compat-package.mjs --destination /path/to/consumer/.local-packages --source /path/to/original/synapse-ui
+```
+
+Without `--source`, the script fetches original `@zanehu-ai/synapse-ui@0.1.8` using existing npm credentials and validates its recorded registry integrity. With an explicit directory, provenance records that archive integrity was not independently verified. Both paths copy all `dist` files unchanged, rename only package metadata, and write a local provenance file with every dist hash and the new artifact integrity. Consumers must prepare these ignored artifacts before frozen installation. Registry publication and replacement of local overrides remain a separate authorized release.
 
 ## Install in an application
 
@@ -16,7 +28,7 @@ Use authorized GitHub Packages access through private user or CI configuration. 
 
 ```bash
 # Replace <reviewed-version> with the release your application will use.
-npm install @zanehu-ai/synapse-ui@<reviewed-version>
+npm install @zanehu-ai/x-ui@<reviewed-version>
 ```
 
 The manifest currently declares the **unpublished `0.2.0-rc.0` release candidate**. The `presentation` namespace in this source is absent from the recorded `v0.1.8` source tag; its adoption requires a release that includes it. See [consumer migration](#consumer-migration-after-release).
@@ -41,7 +53,7 @@ Components use Tailwind utility classes. Include the installed package's `dist/*
 ## Usage
 
 ```tsx
-import { Button, Card, CardContent } from '@zanehu-ai/synapse-ui'
+import { Button, Card, CardContent } from '@zanehu-ai/x-ui'
 
 export function SaveCard() {
   return (
@@ -64,8 +76,8 @@ defaults outside `UIThemeProvider`; importing the stylesheet alone does not
 enable a theme globally.
 
 ```tsx
-import { Button, UIThemeProvider, useUITheme } from '@zanehu-ai/synapse-ui'
-import '@zanehu-ai/synapse-ui/dist/theme/styles.css'
+import { Button, UIThemeProvider, useUITheme } from '@zanehu-ai/x-ui'
+import '@zanehu-ai/x-ui/dist/theme/styles.css'
 
 function ThemeControls() {
   const { theme, resolvedTheme, setTheme } = useUITheme()
@@ -150,7 +162,7 @@ progress.
 | `SegmentedControl`, `SegmentedControlItem` | A single-choice radio group. Give the group a `label`, `aria-label` or `aria-labelledby`; use `value`/`onValueChange` or `defaultValue`. |
 
 ```tsx
-import { Progress, Skeleton, Spinner } from '@zanehu-ai/synapse-ui'
+import { Progress, Skeleton, Spinner } from '@zanehu-ai/x-ui'
 
 export function LoadingFeedback({ loading }: { loading: boolean }) {
   return (
@@ -211,7 +223,7 @@ mkdir -p /tmp/x-console-theme-package
 npm pack --pack-destination /tmp/x-console-theme-package
 ```
 
-The output is `zanehu-ai-synapse-ui-0.2.0-rc.0.tgz`. Consumer previews may install
+The output is `zanehu-ai-x-ui-0.2.0-rc.0.tgz`. Consumer previews may install
 that tarball temporarily. Do not commit a machine-specific tarball dependency;
 replace it with the approved published version before release. Package
 publication, tagging, deployment and production acceptance are not implied by
@@ -223,7 +235,7 @@ The `presentation` namespace provides reusable presentation blocks extracted
 from the X-core console. Use it for the existing Cargo and Game screen behavior:
 
 ```tsx
-import { presentation } from '@zanehu-ai/synapse-ui'
+import { presentation } from '@zanehu-ai/x-ui'
 
 const { SimpleDialog, DescriptionSection, DescriptionItem, ConfigFieldGrid } = presentation
 
@@ -279,7 +291,7 @@ only and must not become a committed file path dependency.
 Replace generic implementations with package re-exports. For example:
 
 ```tsx
-import { presentation } from '@zanehu-ai/synapse-ui'
+import { presentation } from '@zanehu-ai/x-ui'
 
 export const { Badge, Button, SimpleDialog, StatusBadge, ToggleChip } = presentation
 export type BadgeProps = presentation.BadgeProps
@@ -293,7 +305,7 @@ translations rather than changing locale behavior. Preserve optional explicit
 host labels for independently hosted product features:
 
 ```tsx
-import { presentation } from '@zanehu-ai/synapse-ui'
+import { presentation } from '@zanehu-ai/x-ui'
 import { useTranslation } from '../i18n'
 
 export type ConfigField<T> = presentation.ConfigField<T>

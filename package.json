@@ -1,5 +1,5 @@
 {
-  "name": "@zanehu-ai/synapse-ui",
+  "name": "@zanehu-ai/x-ui",
   "version": "0.2.0-rc.0",
   "type": "module",
   "main": "dist/index.js",
