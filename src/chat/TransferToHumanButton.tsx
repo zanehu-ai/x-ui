@@ -29,7 +29,7 @@ export function TransferToHumanButton({
       disabled={Boolean(disabled || loading)}
       onClick={() => onTransfer(phrase)}
       className={cn(
-        'border-amber-300 bg-amber-50 font-semibold text-amber-900 hover:bg-amber-100 focus-visible:outline-amber-500 disabled:opacity-60',
+        'border-[var(--x-ui-warning-border,var(--color-amber-300,#fcd34d))] bg-[var(--x-ui-warning-bg,var(--color-amber-50,#fffbeb))] font-semibold text-[color:var(--x-ui-warning-fg,var(--color-amber-900,#78350f))] hover:bg-[var(--x-ui-warning-bg,var(--color-amber-100,#fef3c7))] focus-visible:outline-amber-500 disabled:opacity-60',
         className,
       )}
       variant="outline"

@@ -1,105 +1,221 @@
-# @zanehu-ai/synapse-ui
+# x-ui
 
-跨产品前端共享组件库。为 admin、portal 等前端项目提供统一的 UI 组件和基础设施。
+Shared React components, frontend utilities and OpcOrbit API primitives. The repository is `x-ui`; the npm package remains **`@zanehu-ai/synapse-ui`**.
 
-## 安装
+[package.json](package.json) defines dependencies and build scripts; [src/index.ts](src/index.ts) defines the root API. Source lives in `src/` and the package ships compiled JavaScript and declarations in `dist/`. This library has no standalone application or development server.
 
-```bash
-# 配置 GitHub Packages npm registry
-echo "@zanehu-ai:registry=https://npm.pkg.github.com" >> .npmrc
+## Install in an application
 
-# 安装
-npm install @zanehu-ai/synapse-ui
+Configure the package scope in the application's `.npmrc`:
+
+```ini
+@zanehu-ai:registry=https://npm.pkg.github.com
 ```
 
-## 使用
+Use authorized GitHub Packages access through private user or CI configuration. Keep credentials out of repository files and browser environment variables. Select a reviewed release rather than assuming that every API in this checkout is available from the registry:
+
+```bash
+# Replace <reviewed-version> with the release your application will use.
+npm install @zanehu-ai/synapse-ui@<reviewed-version>
+```
+
+The manifest currently declares the **unpublished `0.2.0-rc.0` release candidate**. The `presentation` namespace in this source is absent from the recorded `v0.1.8` source tag; its adoption requires a release that includes it. See [consumer migration](#consumer-migration-after-release).
+
+The theme and feedback APIs below are included in this **unpublished release candidate**. Their presence in this checkout or a local package build does not make them available in the published `0.1.8` package. A versioned `npm pack` artifact can validate a local consumer preview; shipping adoption requires an approved published release that includes them.
+
+### Application requirements
+
+The consuming app supplies the peer dependencies declared in [package.json](package.json):
+
+| Dependency | Supported range |
+| --- | --- |
+| React / React DOM | `^18.3.0 \|\| ^19.0.0` |
+| TanStack React Query | `^5.0.0` |
+| TanStack React Table | `^8.20.0` |
+| Axios | `^1.7.0` |
+| Zustand | `^5.0.0` |
+| Lucide React | `>=0.300.0` |
+
+Components use Tailwind utility classes. Include the installed package's `dist/**/*.js` in the application's Tailwind source scan. The unreleased theme additions provide an optional `dist/theme/styles.css` stylesheet for scoped theme surfaces and motion; it does not replace the Tailwind scan or generated component styles. The package does not automatically configure the host's providers, routing or authentication.
+
+## Usage
 
 ```tsx
-import { Button, Badge, Card, cn } from '@zanehu-ai/synapse-ui'
-import { I18nProvider, useT } from '@zanehu-ai/synapse-ui'
-import { createClient } from '@zanehu-ai/synapse-ui'
+import { Button, Card, CardContent } from '@zanehu-ai/synapse-ui'
+
+export function SaveCard() {
+  return (
+    <Card>
+      <CardContent>
+        <Button type="submit">Save changes</Button>
+      </CardContent>
+    </Card>
+  )
+}
 ```
 
-## 技术栈
+Import only APIs present in the release you install. Root exports and existing deep module paths are compatibility contracts; repository moves do not rename them.
 
-- React 18/19 + TypeScript 5
-- Radix UI 原语组件
-- shadcn/ui v4（new-york 变体）官方源码
-- Tailwind CSS（clsx + tailwind-merge）
-- class-variance-authority（组件变体）
+## Opt-in theme and motion (unreleased)
 
-## UI 组件
+Import the optional stylesheet explicitly at the application entry and wrap the
+area that should adopt the theme. Existing components retain their legacy
+defaults outside `UIThemeProvider`; importing the stylesheet alone does not
+enable a theme globally.
 
-所有 UI 组件基于 shadcn/ui v4 官方源码，使用 Radix UI 原语实现：
+```tsx
+import { Button, UIThemeProvider, useUITheme } from '@zanehu-ai/synapse-ui'
+import '@zanehu-ai/synapse-ui/dist/theme/styles.css'
 
-| 组件 | 说明 |
-|------|------|
-| Button | 按钮（default/destructive/outline/ghost + loading + asChild） |
-| Badge | 徽章（default/success/warning/danger/secondary） |
-| Alert | 页面提示（neutral/success/warning/danger/info） |
-| Card | 卡片（Card/CardHeader/CardTitle/CardContent） |
-| Input | 输入框（含 label/hint/error 提示） |
-| Dialog | 对话框 |
-| Select | 下拉选择 |
-| Tabs | 标签页（default/line 变体，支持水平/垂直方向） |
-| Switch | 开关 |
-| Checkbox | 复选框 |
-| RadioGroup | 单选组 |
-| Avatar | 头像（Image + Fallback） |
-| Accordion | 手风琴折叠面板 |
-| DropdownMenu | 下拉菜单 |
-| AlertDialog | 确认对话框 |
-| ScrollArea | 滚动区域 |
-| Separator | 分隔线 |
-| Table | 表格 |
-| Textarea | 多行文本（含 label/hint/error 提示） |
-| AspectRatio | 宽高比容器 |
-| Toolbar | 工具栏 |
+function ThemeControls() {
+  const { theme, resolvedTheme, setTheme } = useUITheme()
+  return (
+    <section>
+      <p>Current appearance: {resolvedTheme}</p>
+      {(['light', 'dark', 'system'] as const).map(choice => (
+        <Button
+          key={choice}
+          aria-pressed={theme === choice}
+          variant={theme === choice ? 'primary' : 'outline'}
+          onClick={() => setTheme(choice)}
+        >
+          {choice}
+        </Button>
+      ))}
+    </section>
+  )
+}
 
-## 共享基础设施
+export function ThemedControls() {
+  return (
+    <UIThemeProvider defaultTheme="system" motion="auto">
+      <ThemeControls />
+    </UIThemeProvider>
+  )
+}
+```
 
-| 模块 | 说明 |
-|------|------|
-| `createClient` | Axios API 工厂（拦截器、错误处理、Token 管理） |
-| `createAuthStore` | Zustand 认证 store 工厂（登录/登出/Token 持久化） |
-| `I18nProvider` + `useT` | 国际化方案 |
-| `cn` | clsx + tailwind-merge 样式合并工具 |
+`useUITheme()` must run within a provider. It returns the selected `theme`
+(`light`, `dark` or `system`), the effective `resolvedTheme` (`light` or `dark`),
+and `setTheme`. System mode follows changes to the operating system's color
+preference. Valid saved choices take precedence over `defaultTheme`.
 
-## 共享组件
+| Provider option | Behavior |
+| --- | --- |
+| `defaultTheme` | Initial uncontrolled choice; defaults to `system`. |
+| `theme`, `onThemeChange` | Controlled mode: `setTheme` requests a change through the callback; the owner supplies the updated `theme`. |
+| `storageKey` | Defaults to `x-ui-theme` in local storage. Use a separate key for an independent preference, or `storageKey={false}` to disable reading and saving. Blocked storage does not prevent theme changes. |
+| `motion="auto"` | Default. Enables the scoped motion styles while honoring the operating system's reduced-motion preference. |
+| `motion="off"` | Disables scoped animations, transitions and CSS smooth scrolling, including themed portals. It does not change application-owned JavaScript scrolling. |
+| `className`, `style` | Customize the provider wrapper. Override `--x-ui-*` CSS variables through `style` to customize its palette. |
 
-| 组件 | 说明 |
-|------|------|
-| `DataTable` | TanStack Table 封装 + legacy `Column<T>` adapter + 分页 |
-| `ErrorBoundary` | React 错误边界 |
-| `Pagination` | 分页组件 |
-| `PageHeader` | 页面标题、说明和操作区 |
-| `FilterBar` | 筛选条容器 |
-| `EmptyState` | 空状态 |
-| `StatusBadge` | 状态徽章 |
-| `ConfirmDialog` | 通用确认弹窗 |
-| `ConfirmButton` | 按钮 + 确认弹窗组合 |
-| `RowActions` | 表格行操作按钮组 |
+The provider changes its own wrapper, not `<html>` or other application roots.
+Library dialog, menu, popover and tooltip portals carry the resolved theme,
+palette variables and motion setting even when mounted outside that wrapper.
+Wrapper layout styles such as padding are not copied into portals. Arbitrary
+application-owned portals are outside this automatic propagation.
 
-## Peer Dependencies
+Keep legacy product regions such as Cargo outside the provider in both the
+React tree and the DOM. A plain nested wrapper does not stop CSS-variable
+inheritance, ancestor dark selectors, scoped motion or portal context. Theme
+shell regions with sibling providers sharing controlled appearance state; wrap
+business content only when that product explicitly adopts the shared theme.
 
-| 包 | 版本 | 必需 |
-|---|------|------|
-| react | ^18.3 \|\| ^19.0 | 是 |
-| react-dom | ^18.3 \|\| ^19.0 | 是 |
-| axios | ^1.7 | 是 |
-| zustand | ^5.0 | 是 |
-| lucide-react | >=0.300 | 是 |
-| @tanstack/react-query | ^5.0 | 是 |
-| @tanstack/react-table | ^8.20 | 是 |
+Server rendering and the first client render use the same initial fallback:
+an explicit light/dark choice is used immediately, while `system` initially
+resolves to light. Saved choices and browser system preferences are applied
+after mounting. This avoids a hydration mismatch but can briefly show the
+fallback appearance. If the host already knows the desired theme on the
+server, pass the same explicit controlled `theme` on server and client.
 
-## 发布
+The optional CSS adds restrained dialog/menu entry and exit motion and loading
+animations. `motion="off"` and OS reduced motion stop these animations without
+removing content or changing component positioning. The host must still scan
+`dist/**/*.js` with Tailwind.
 
-推送 tag 触发 GitHub Actions 自动发布到 GitHub Packages：
+## Feedback and supporting controls (unreleased)
+
+These additive root exports use theme variables when a provider is present and
+have fallback styles when it is absent. Use the optional stylesheet above for
+the themed loading animations, including skeleton pulse and indeterminate
+progress.
+
+| API | Usage |
+| --- | --- |
+| `Skeleton` | `loading` defaults to `true`; optional `width` and `height` reserve space. Child content stays mounted but is hidden and non-interactive while loading. |
+| `Spinner` | Accepts `size="sm" \| "md" \| "lg"` and a translated `label`; announces loading with a status role. Use `decorative` when nearby content already announces the same state. |
+| `Progress` | Pass a finite `value` for a percentage, clamped to 0–100. Omitted, `null` or non-finite values are indeterminate. Supply `label`, `aria-label` or `aria-labelledby`. |
+| `Popover`, `PopoverTrigger`, `PopoverContent`, `PopoverClose` | Compose a Radix popover; `PopoverRoot` aliases `Popover`. Content supports theme propagation through its portal. |
+| `TooltipProvider`, `Tooltip`, `TooltipTrigger`, `TooltipContent` | Compose a Radix tooltip with its provider; `TooltipRoot` aliases `Tooltip`. Use `asChild` on the trigger to wrap an existing button. |
+| `SegmentedControl`, `SegmentedControlItem` | A single-choice radio group. Give the group a `label`, `aria-label` or `aria-labelledby`; use `value`/`onValueChange` or `defaultValue`. |
+
+```tsx
+import { Progress, Skeleton, Spinner } from '@zanehu-ai/synapse-ui'
+
+export function LoadingFeedback({ loading }: { loading: boolean }) {
+  return (
+    <section>
+      {loading && <Spinner label="Loading workspace" />}
+      <Skeleton loading={loading}>
+        <p>Workspace summary</p>
+      </Skeleton>
+      <Progress label="Upload progress" value={loading ? undefined : 100} />
+    </section>
+  )
+}
+```
+
+Keep the host's translations, data requests and loading lifecycle in the
+application; these controls only display the supplied state.
+
+## Source guide
+
+| Directory | Contents |
+| --- | --- |
+| [src/ui](src/ui/) | Buttons, inputs, cards, tables and Radix-based dialogs, menus and other primitives |
+| [src/components](src/components/) | DataTable, pagination, layouts, navigation, form controls, confirmation and state components |
+| [src/api](src/api/), [src/store](src/store/) | Axios client factory and Zustand auth-store factory |
+| [src/i18n](src/i18n/), [src/hooks](src/hooks/), [src/utils](src/utils/), [src/types](src/types/) | Translation, pagination, formatting and shared API types |
+| [src/chat](src/chat/) | Conversation/message components and chat translations |
+| [src/opcorbit](src/opcorbit/) | Control/domain API primitives, query keys, schemas and permission contracts |
+| [src/presentation](src/presentation/) | Opt-in compatibility components for detail and configuration screens |
+| [src/theme](src/theme/) | Opt-in light/dark/system provider, scoped palette variables and optional motion CSS (unreleased) |
+| [tests](tests/) | Built-package export and behavior checks |
+
+`createClient` has two modes: basic options return an Axios instance; supplying both `getToken` and `onUnauthorized` returns a typed wrapper with auth and response-envelope handling. See [the overloads and options](src/api/createClient.ts) before changing a consumer.
+
+## Development
+
+Use **Node 22**, matching [CI](.github/workflows/ci.yml), and npm with the checked-in lockfile. From this repository:
 
 ```bash
-npm version patch  # 或 minor / major
-git push origin main --tags
+npm ci             # Installs dependencies and runs the prepare/build script
+npm run typecheck
+npm test           # Builds dist, then runs the Node test suite
+npm run build      # Rebuilds JS/declarations and fixes distribution import paths
 ```
+
+`make typecheck` is a shortcut for the TypeScript check. Source builds include their own development type dependencies; they do not require sibling application checkouts or type-link scripts.
+
+## Releases
+
+The [publish workflow](.github/workflows/publish.yml) runs for pushed `v*` tags, builds through the npm lifecycle, typechecks and publishes to GitHub Packages. Coordinate version/tag changes and consumer upgrades after verification. A source commit or local package build is not evidence that the corresponding package has been published. See [CHANGELOG.md](CHANGELOG.md) for recorded release history.
+
+For the current local release candidate, create the preview artifact without a
+tag or registry write:
+
+```bash
+npm run typecheck
+npm test
+mkdir -p /tmp/x-console-theme-package
+npm pack --pack-destination /tmp/x-console-theme-package
+```
+
+The output is `zanehu-ai-synapse-ui-0.2.0-rc.0.tgz`. Consumer previews may install
+that tarball temporarily. Do not commit a machine-specific tarball dependency;
+replace it with the approved published version before release. Package
+publication, tagging, deployment and production acceptance are not implied by
+this local verification.
 
 ## Opt-in detail and configuration presentation
 
@@ -156,9 +272,8 @@ introduced.
 
 ### Consumer migration after release
 
-This checkout keeps its existing package version. The new API must be published
-in a new release before a consumer commits a dependency on it; published `0.1.8`
-does not include `presentation`. A local `npm pack` artifact is for validation
+The `v0.1.8` source tag does not export `presentation`. The new API must be included
+in a verified package release before a consumer commits a dependency on it. A local `npm pack` artifact is for validation
 only and must not become a committed file path dependency.
 
 Replace generic implementations with package re-exports. For example:
@@ -192,9 +307,9 @@ export function ConfigFieldGrid<T extends Record<string, unknown>>({ labels, ...
 }
 ```
 
-Cargo detail pages and Game configuration pages already use these blocks.
-Application auth, tenant selection, permission checks, and API transport stay
-with the host; this presentation extraction does not replace them.
+When adopting these blocks in Cargo detail or retained Game configuration screens,
+keep application auth, tenant selection, permission checks and API transport
+with the host.
 
 Run `npm test` to build the published entry and exercise the presentation
 contracts, including the unchanged root defaults, with Node's test runner.

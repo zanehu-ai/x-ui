@@ -1,14 +1,15 @@
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { cloneElement, forwardRef, isValidElement, type ButtonHTMLAttributes, type ReactElement, type ReactNode } from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { cn } from '../utils/cn'
+import { Spinner } from './Feedback'
 
 const variants = {
-  default: 'bg-blue-600 text-white hover:bg-blue-700',
-  primary: 'bg-blue-600 text-white hover:bg-blue-700',
-  secondary: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
+  default: 'bg-[var(--x-ui-primary,var(--color-blue-600,#2563eb))] text-[color:var(--x-ui-primary-fg,var(--color-white,#fff))] hover:bg-[var(--x-ui-primary-hover,var(--color-blue-700,#1d4ed8))]',
+  primary: 'bg-[var(--x-ui-primary,var(--color-blue-600,#2563eb))] text-[color:var(--x-ui-primary-fg,var(--color-white,#fff))] hover:bg-[var(--x-ui-primary-hover,var(--color-blue-700,#1d4ed8))]',
+  secondary: 'border border-[var(--x-ui-border,var(--color-gray-300,#d1d5db))] bg-[var(--x-ui-surface,var(--color-white,#fff))] text-[color:var(--x-ui-fg,var(--color-gray-700,#374151))] hover:bg-[var(--x-ui-muted,var(--color-gray-50,#f9fafb))]',
   destructive: 'bg-red-600 text-white hover:bg-red-700',
-  outline: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
-  ghost: 'text-gray-700 hover:bg-gray-100',
+  outline: 'border border-[var(--x-ui-border,var(--color-gray-300,#d1d5db))] bg-[var(--x-ui-surface,var(--color-white,#fff))] text-[color:var(--x-ui-fg,var(--color-gray-700,#374151))] hover:bg-[var(--x-ui-muted,var(--color-gray-50,#f9fafb))]',
+  ghost: 'text-[color:var(--x-ui-fg,var(--color-gray-700,#374151))] hover:bg-[var(--x-ui-muted,var(--color-gray-100,#f3f4f6))]',
 } as const
 
 const sizes = {
@@ -30,31 +31,42 @@ export type ButtonVariant = keyof typeof variants
 export type ButtonSize = keyof typeof sizes
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'default', size = 'md', loading, asChild, disabled, children, ...props }, ref) => {
+  ({ className, variant = 'default', size = 'md', loading, asChild, disabled, children, onClickCapture, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button'
+    const loadingContent = (content: ReactNode) => (
+      <>
+        <span className="inline-flex items-center justify-center opacity-0" style={{ gap: 'inherit' }}>{content}</span>
+        <span className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true"><Spinner decorative size="md" /></span>
+      </>
+    )
+    const content = loading
+      ? asChild && isValidElement<{ children?: ReactNode }>(children)
+        ? cloneElement(children as ReactElement<{ children?: ReactNode }>, undefined, loadingContent(children.props.children))
+        : loadingContent(children)
+      : children
     return (
       <Comp
         ref={ref}
         className={cn(
-          'inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+          'relative inline-flex items-center justify-center rounded-[var(--x-ui-button-radius,0.375rem)] font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--x-ui-focus,var(--color-blue-500,#3b82f6))] focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
           variants[variant],
           sizes[size],
           className,
         )}
         disabled={disabled || loading}
         {...props}
+        aria-busy={loading || props['aria-busy'] || undefined}
+        aria-disabled={(asChild && (disabled || loading)) || props['aria-disabled'] || undefined}
+        onClickCapture={(event) => {
+          if (loading || (asChild && disabled)) {
+            event.preventDefault()
+            event.stopPropagation()
+            return
+          }
+          onClickCapture?.(event)
+        }}
       >
-        {loading ? (
-          <>
-            <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
-            {children}
-          </>
-        ) : (
-          children
-        )}
+        {content}
       </Comp>
     )
   },

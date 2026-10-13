@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0-rc.0] - 2026-10-13
+
+Local release candidate for consumer validation. This version has not been
+published or tagged. Registry publication and consumer release remain separate
+approval checkpoints.
+
+### Added
+- Opt-in `UIThemeProvider` / `useUITheme` with Light, Dark and System appearance,
+  saved or controlled preferences, and theme propagation to library portals.
+- Optional `dist/theme/styles.css` with scoped animation and reduced-motion
+  support. Consumer Tailwind scanning of `dist/**/*.js` remains required.
+- `Skeleton`, `Spinner`, `Progress`, `Popover`, `Tooltip`, `SegmentedControl`
+  and their composition parts.
+- The `presentation` namespace for retained detail and configuration components.
+
+### Changed
+- Shared primitives, forms, navigation, chat and presentation blocks use scoped
+  monochrome tokens while retaining legacy palette fallbacks outside a provider.
+- Loading buttons keep their visible dimensions and accessible name and prevent
+  repeat activation, including when rendering a single child link.
+
+### Migration and validation
+- Install the local `npm pack` artifact only for preview validation. Do not
+  commit a machine-specific `file:` dependency; use an explicitly approved
+  published version for a reproducible release installation.
+- Keep Cargo product content outside the provider in both the React tree and
+  the DOM. A plain nested wrapper does not reset inherited palette variables,
+  dark selectors, motion rules or portal context. Theme shell regions with
+  sibling providers that share controlled appearance state.
+- Existing dialog initial-focus defaults and substring-based status mapping
+  are preserved. Consumers must validate focus and status meaning in the
+  workflows they adopt; this candidate does not establish production acceptance.
+
 ## [0.1.8] - 2026-05-22
 
 First release under the `@zanehu-ai/synapse-ui` npm name after the package

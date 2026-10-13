@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { cn } from '../utils/cn'
+import { useThemeSurface } from '../theme/ThemeProvider'
 
 
 
@@ -18,15 +19,20 @@ function DialogClose({ ...props }: React.ComponentProps<typeof DialogPrimitive.C
 
 function DialogOverlay({
   className,
+  style,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Overlay>) {
+  const { className: themeClassName, style: themeStyle, ...themeAttrs } = useThemeSurface()
   return (
     <DialogPrimitive.Overlay
+      {...themeAttrs}
       data-slot="dialog-overlay"
       className={cn(
         'fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0',
+        themeClassName,
         className,
       )}
+      style={{ ...themeStyle, ...style }}
       {...props}
     />
   )
@@ -35,25 +41,33 @@ function DialogOverlay({
 function DialogContent({
   className,
   children,
+  style,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content>) {
+  const { className: themeClassName, style: themeStyle, ...themeAttrs } = useThemeSurface()
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay
+        {...themeAttrs}
         data-slot="dialog-overlay"
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0"
+        className={cn('fixed inset-0 z-50 flex items-center justify-center bg-black/50 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0', themeClassName)}
+        style={themeStyle}
       >
         <DialogPrimitive.Content
+          {...themeAttrs}
           data-slot="dialog-content"
           onOpenAutoFocus={(e) => e.preventDefault()}
           className={cn(
-            'relative z-50 w-full max-w-lg rounded-lg border bg-white p-6 shadow-xl duration-200 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
+            'relative z-50 w-full max-w-lg rounded-lg border bg-[var(--x-ui-surface,var(--color-white,#fff))] p-6 shadow-xl duration-200 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
+            themeClassName,
+            themeClassName && 'border-[color:var(--x-ui-border)] text-[color:var(--x-ui-fg)]',
             className,
           )}
+          style={{ ...themeStyle, ...style }}
           {...props}
         >
           {children}
-          <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+          <DialogPrimitive.Close aria-label="Close dialog" className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-[color:var(--x-ui-surface,var(--color-white,#fff))] transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-[color:var(--x-ui-focus,var(--color-blue-500,#3b82f6))] focus:ring-offset-2">
             <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
               <path
                 fillRule="evenodd"
@@ -92,7 +106,7 @@ function DialogDescription({
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      className={cn('text-sm text-gray-500', className)}
+      className={cn('text-sm text-[color:var(--x-ui-muted-fg,var(--color-gray-500,#6b7280))]', className)}
       {...props}
     />
   )

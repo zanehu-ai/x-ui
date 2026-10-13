@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog'
 import { cn } from '../utils/cn'
+import { useThemeSurface } from '../theme/ThemeProvider'
 
 
 function AlertDialog({ ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Root>) {
@@ -18,25 +19,33 @@ function AlertDialogPortal({ ...props }: React.ComponentProps<typeof AlertDialog
 function AlertDialogContent({
   className,
   children,
+  style,
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Content>) {
+  const { className: themeClassName, style: themeStyle, ...themeAttrs } = useThemeSurface()
   return (
     <AlertDialogPortal>
       <AlertDialogPrimitive.Overlay
+        {...themeAttrs}
         data-slot="alert-dialog-overlay"
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0"
+        className={cn('fixed inset-0 z-50 flex items-center justify-center bg-black/50 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0', themeClassName)}
+        style={themeStyle}
       >
         <AlertDialogPrimitive.Content
+          {...themeAttrs}
           data-slot="alert-dialog-content"
           onOpenAutoFocus={(e) => e.preventDefault()}
           className={cn(
-            'relative z-50 grid w-full max-w-lg gap-4 rounded-xl border bg-white p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
+            'relative z-50 grid w-full max-w-lg gap-4 rounded-xl border bg-[var(--x-ui-surface,var(--color-white,#fff))] p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
+            themeClassName,
+            themeClassName && 'border-[color:var(--x-ui-border)] text-[color:var(--x-ui-fg)]',
             className,
           )}
+          style={{ ...themeStyle, ...style }}
           {...props}
         >
           {children}
-          <AlertDialogPrimitive.Cancel className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+          <AlertDialogPrimitive.Cancel className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-[color:var(--x-ui-surface,var(--color-white,#fff))] transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-[color:var(--x-ui-focus,var(--color-blue-500,#3b82f6))] focus:ring-offset-2">
             <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
               <path
                 fillRule="evenodd"
@@ -91,7 +100,7 @@ function AlertDialogDescription({
   return (
     <AlertDialogPrimitive.Description
       data-slot="alert-dialog-description"
-      className={cn('whitespace-pre-line text-sm text-gray-500', className)}
+      className={cn('whitespace-pre-line text-sm text-[color:var(--x-ui-muted-fg,var(--color-gray-500,#6b7280))]', className)}
       {...props}
     />
   )
@@ -105,7 +114,7 @@ function AlertDialogAction({
     <AlertDialogPrimitive.Action
       data-slot="alert-dialog-action"
       className={cn(
-        'inline-flex h-10 items-center justify-center rounded-md bg-blue-600 px-5 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+        'inline-flex h-10 items-center justify-center rounded-md bg-[var(--x-ui-primary,var(--color-blue-600,#2563eb))] px-5 text-sm font-medium text-[color:var(--x-ui-primary-fg,var(--color-white,#fff))] transition-colors hover:bg-[var(--x-ui-primary-hover,var(--color-blue-700,#1d4ed8))] focus:outline-none focus:ring-2 focus:ring-[color:var(--x-ui-focus,var(--color-blue-500,#3b82f6))] focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
         className,
       )}
       {...props}
@@ -121,7 +130,7 @@ function AlertDialogCancel({
     <AlertDialogPrimitive.Cancel
       data-slot="alert-dialog-cancel"
       className={cn(
-        'inline-flex h-10 items-center justify-center rounded-md border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+        'inline-flex h-10 items-center justify-center rounded-md border border-[color:var(--x-ui-border,var(--color-gray-300,#d1d5db))] bg-[var(--x-ui-surface,var(--color-white,#fff))] px-5 text-sm font-medium text-[color:var(--x-ui-fg,var(--color-gray-700,#374151))] transition-colors hover:bg-[var(--x-ui-muted,var(--color-gray-50,#f9fafb))] focus:outline-none focus:ring-2 focus:ring-[color:var(--x-ui-focus,var(--color-blue-500,#3b82f6))] focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
         className,
       )}
       {...props}

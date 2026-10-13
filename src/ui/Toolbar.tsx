@@ -22,7 +22,7 @@ function ToolbarSeparator({
   return (
     <ToolbarPrimitive.Separator
       data-slot="toolbar-separator"
-      className={cn("mx-1 h-5 w-px shrink-0 bg-border", className)}
+      className={cn("mx-1 h-5 w-px shrink-0 bg-[var(--x-ui-border,var(--color-border))]", className)}
       {...props}
     />
   )

@@ -142,3 +142,10 @@ export * from './opcorbit/domain/tables/columns'
 
 // Opt-in presentation compatibility for detail and configuration screens.
 export * as presentation from './presentation/index'
+
+// Appearance is opt-in; legacy consumers retain their existing color fallbacks.
+export { UIThemeProvider, useUITheme, type UITheme, type UIResolvedTheme, type UIThemeMotion, type UIThemeProviderProps } from './theme'
+export { Skeleton, Spinner, Progress, type SkeletonProps, type SpinnerProps, type ProgressProps } from './ui/Feedback'
+export { Popover, PopoverRoot, PopoverTrigger, PopoverContent, PopoverClose, type PopoverProps, type PopoverTriggerProps, type PopoverContentProps, type PopoverCloseProps } from './ui/Popover'
+export { Tooltip, TooltipRoot, TooltipProvider, TooltipTrigger, TooltipContent, type TooltipProps, type TooltipProviderProps, type TooltipTriggerProps, type TooltipContentProps } from './ui/Tooltip'
+export { SegmentedControl, SegmentedControlItem, type SegmentedControlProps, type SegmentedControlItemProps } from './ui/SegmentedControl'

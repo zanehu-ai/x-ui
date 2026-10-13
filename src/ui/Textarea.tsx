@@ -17,7 +17,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="space-y-1">
         {label && (
-          <label htmlFor={textareaId} className="block text-sm font-medium text-gray-700">
+          <label htmlFor={textareaId} className="block text-sm font-medium text-[color:var(--x-ui-fg,var(--color-gray-700,#374151))]">
             {label}
           </label>
         )}
@@ -28,14 +28,14 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           aria-describedby={describedBy}
           value={value ?? undefined}
           className={cn(
-            'min-h-16 w-full min-w-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm transition-colors outline-none placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
-            error && 'border-red-500 focus:border-red-500 focus:ring-red-500/20',
+            'min-h-16 w-full min-w-0 rounded-lg border border-[color:var(--x-ui-border,var(--color-gray-300,#d1d5db))] bg-[var(--x-ui-surface,var(--color-white,#fff))] px-3 py-2 text-sm transition-colors outline-none placeholder:text-[color:var(--x-ui-muted-fg,var(--color-gray-400,#9ca3af))] focus:border-[color:var(--x-ui-focus,var(--color-blue-500,#3b82f6))] focus:ring-2 focus:ring-[color:var(--x-ui-focus,var(--color-blue-500,#3b82f6))]/20 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
+            error && 'border-[color:var(--x-ui-danger,var(--color-red-500,#ef4444))] focus:border-[color:var(--x-ui-danger,var(--color-red-500,#ef4444))] focus:ring-[color:var(--x-ui-danger,var(--color-red-500,#ef4444))]/20',
             className,
           )}
           {...props}
         />
-        {hint && <p id={hintId} className="text-xs text-gray-500">{hint}</p>}
-        {error && <p id={errorId} className="text-sm text-red-500">{error}</p>}
+        {hint && <p id={hintId} className="text-xs text-[color:var(--x-ui-muted-fg,var(--color-gray-500,#6b7280))]">{hint}</p>}
+        {error && <p id={errorId} className="text-sm text-[color:var(--x-ui-danger,var(--color-red-500,#ef4444))]">{error}</p>}
       </div>
     )
   },

@@ -35,9 +35,9 @@ export function ConfigFieldGrid<T extends Record<string, unknown>>({
 
         return (
           <div key={String(field.key)} className="space-y-1">
-            <dt className="text-xs font-medium text-slate-500">{field.label}</dt>
-            <dd className="text-sm text-slate-900">{value}</dd>
-            {field.hint ? <p className="text-xs text-slate-400">{field.hint}</p> : null}
+            <dt className="text-xs font-medium text-[color:var(--x-ui-muted-fg,var(--color-slate-500,#64748b))]">{field.label}</dt>
+            <dd className="text-sm text-[color:var(--x-ui-fg,var(--color-slate-900,#0f172a))]">{value}</dd>
+            {field.hint ? <p className="text-xs text-[color:var(--x-ui-muted-fg,var(--color-slate-400,#94a3b8))]">{field.hint}</p> : null}
           </div>
         )
       })}
@@ -51,7 +51,7 @@ function formatConfigScalar(value: unknown, labels: ConfigFieldLabels): ReactNod
   if (typeof value === 'object') {
     try {
       return (
-        <code className="block whitespace-pre-wrap rounded bg-slate-50 px-2 py-1 font-mono text-xs text-slate-700">
+        <code className="block whitespace-pre-wrap rounded bg-[var(--x-ui-muted,var(--color-slate-50,#f8fafc))] px-2 py-1 font-mono text-xs text-[color:var(--x-ui-fg,var(--color-slate-700,#334155))]">
           {JSON.stringify(value, null, 2)}
         </code>
       )
