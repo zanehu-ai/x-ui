@@ -1,0 +1,97 @@
+/* Optional x-ui theme stylesheet. Every rule is scoped to an opted-in surface. */
+.x-ui-theme[data-x-ui-theme] {
+  color: var(--x-ui-fg);
+  background-color: var(--x-ui-background);
+  transition: color 180ms ease, background-color 180ms ease;
+}
+
+[data-x-ui-theme][data-slot='dialog-overlay'][data-state='open'],
+[data-x-ui-theme][data-slot='alert-dialog-overlay'][data-state='open'] {
+  animation: x-ui-overlay-in 160ms ease-out;
+}
+[data-x-ui-theme][data-slot='dialog-overlay'][data-state='closed'],
+[data-x-ui-theme][data-slot='alert-dialog-overlay'][data-state='closed'] {
+  animation: x-ui-overlay-out 120ms ease-in;
+}
+[data-x-ui-theme][data-slot='dialog-content'][data-state='open'],
+[data-x-ui-theme][data-slot='alert-dialog-content'][data-state='open'] {
+  animation: x-ui-dialog-in 200ms cubic-bezier(.2, .7, .2, 1);
+}
+[data-x-ui-theme][data-slot='dialog-content'][data-state='closed'],
+[data-x-ui-theme][data-slot='alert-dialog-content'][data-state='closed'] {
+  animation: x-ui-dialog-out 120ms ease-in;
+}
+
+[data-x-ui-theme][data-slot='dropdown-menu-content'],
+[data-x-ui-theme][data-slot='dropdown-menu-sub-content'] {
+  transform-origin: var(--radix-dropdown-menu-content-transform-origin, center top);
+}
+[data-x-ui-theme][data-slot='select-content'] {
+  transform-origin: var(--radix-select-content-transform-origin, center top);
+}
+[data-x-ui-theme][data-slot='dropdown-menu-content'][data-state='open'],
+[data-x-ui-theme][data-slot='dropdown-menu-sub-content'][data-state='open'],
+[data-x-ui-theme][data-slot='select-content'][data-state='open'] {
+  animation: x-ui-menu-in 160ms cubic-bezier(.2, .7, .2, 1);
+}
+[data-x-ui-theme][data-slot='dropdown-menu-content'][data-state='closed'],
+[data-x-ui-theme][data-slot='dropdown-menu-sub-content'][data-state='closed'],
+[data-x-ui-theme][data-slot='select-content'][data-state='closed'] {
+  animation: x-ui-menu-out 100ms ease-in;
+}
+
+[data-x-ui-theme] .x-ui-spinner,
+[data-x-ui-theme].x-ui-spinner {
+  animation: x-ui-spin 800ms linear infinite;
+}
+[data-x-ui-theme] .x-ui-skeleton,
+[data-x-ui-theme].x-ui-skeleton {
+  animation: x-ui-pulse 1600ms ease-in-out infinite;
+}
+[data-x-ui-theme] .x-ui-progress-indeterminate,
+[data-x-ui-theme].x-ui-progress-indeterminate {
+  animation: x-ui-progress 1400ms ease-in-out infinite;
+}
+
+@keyframes x-ui-overlay-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes x-ui-overlay-out { from { opacity: 1; } to { opacity: 0; } }
+/* Individual scale leaves component positioning transforms intact. */
+@keyframes x-ui-dialog-in { from { opacity: 0; scale: .985; } to { opacity: 1; scale: 1; } }
+@keyframes x-ui-dialog-out { from { opacity: 1; scale: 1; } to { opacity: 0; scale: .985; } }
+@keyframes x-ui-menu-in { from { opacity: 0; scale: .98; } to { opacity: 1; scale: 1; } }
+@keyframes x-ui-menu-out { from { opacity: 1; scale: 1; } to { opacity: 0; scale: .98; } }
+@keyframes x-ui-spin { to { rotate: 360deg; } }
+@keyframes x-ui-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+@keyframes x-ui-progress { from { translate: -110% 0; } to { translate: 310% 0; } }
+
+[data-x-ui-theme][data-x-ui-motion='off'],
+[data-x-ui-theme][data-x-ui-motion='off'] * {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+[data-x-ui-theme][data-x-ui-motion='off']::before,
+[data-x-ui-theme][data-x-ui-motion='off']::after,
+[data-x-ui-theme][data-x-ui-motion='off'] *::before,
+[data-x-ui-theme][data-x-ui-motion='off'] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-x-ui-theme][data-x-ui-motion],
+  [data-x-ui-theme][data-x-ui-motion] * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  [data-x-ui-theme][data-x-ui-motion]::before,
+  [data-x-ui-theme][data-x-ui-motion]::after,
+  [data-x-ui-theme][data-x-ui-motion] *::before,
+  [data-x-ui-theme][data-x-ui-motion] *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

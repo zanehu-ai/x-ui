@@ -65,7 +65,7 @@ function toColumnDef<T>(col: Column<T>): ColumnDef<T, unknown> {
       if (col.sortable) {
         return (
           <button
-            className="flex items-center gap-1 hover:text-gray-700"
+            className="flex items-center gap-1 hover:text-[color:var(--x-ui-fg,var(--color-gray-700,#374151))]"
             onClick={() => column.toggleSorting()}
           >
             {col.title}
@@ -151,13 +151,13 @@ export function DataTable<T>({
         <TableBody>
           {loading ? (
             <TableRow>
-              <TableCell colSpan={resolvedColumns.length} className="text-center py-8 text-gray-500">
+              <TableCell colSpan={resolvedColumns.length} className="text-center py-8 text-[color:var(--x-ui-muted-fg,var(--color-gray-500,#6b7280))]">
                 {loadingText}
               </TableCell>
             </TableRow>
           ) : table.getRowModel().rows.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={resolvedColumns.length} className="text-center py-8 text-gray-500">
+              <TableCell colSpan={resolvedColumns.length} className="text-center py-8 text-[color:var(--x-ui-muted-fg,var(--color-gray-500,#6b7280))]">
                 {emptyText}
               </TableCell>
             </TableRow>

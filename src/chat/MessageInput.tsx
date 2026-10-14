@@ -44,12 +44,12 @@ export function MessageInput({
   return (
     <div
       className={cn(
-        'flex items-end gap-2 border-t border-slate-200 bg-white p-3',
+        'flex items-end gap-2 border-t border-[var(--x-ui-border,var(--color-slate-200,#e2e8f0))] bg-[var(--x-ui-surface,var(--color-white,#fff))] p-3',
         className,
       )}
     >
       <Textarea
-        className="min-h-[44px] max-h-40 flex-1 resize-none text-slate-900"
+        className="min-h-[44px] max-h-40 flex-1 resize-none text-[color:var(--x-ui-fg,var(--color-slate-900,#0f172a))]"
         rows={1}
         placeholder={
           isDisabled

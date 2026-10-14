@@ -1,0 +1,589 @@
+{
+  "capturedAt": "2026-10-13T02:55:53.429Z",
+  "docs390": {
+    "docWidth": 390,
+    "mainTag": "MAIN",
+    "themingTop": 200.015625,
+    "width": 390
+  },
+  "motion390": {
+    "activeTab": "Activity",
+    "animatedElements": 0,
+    "docWidth": 390,
+    "motion": "reduced",
+    "theme": "light",
+    "width": 390
+  },
+  "components320": {
+    "cardTop": 225.078125,
+    "docWidth": 320,
+    "focusedId": "forms-select",
+    "width": 320
+  },
+  "select320": {
+    "popupRect": {
+      "left": 39,
+      "right": 283,
+      "width": 244
+    },
+    "width": 320
+  },
+  "drawerEscape": {
+    "activeText": " Components",
+    "bodyOverflow": "",
+    "expanded": "false"
+  },
+  "allComponentsDesktop": {
+    "bodyOverflow": "",
+    "cardCount": 46,
+    "cardIds": [
+      "foundation-workspace",
+      "foundation-data-states",
+      "foundation-progress-help",
+      "forms-button",
+      "forms-inputs",
+      "forms-textarea",
+      "forms-checkboxes",
+      "forms-switch",
+      "forms-radio-group",
+      "forms-select",
+      "forms-select-field",
+      "forms-files-range",
+      "forms-toggle-chip",
+      "data-badge",
+      "data-status-badge",
+      "data-alert",
+      "data-card",
+      "data-empty-state",
+      "data-table",
+      "data-data-table",
+      "data-pagination",
+      "data-error-boundary",
+      "data-scroll-area",
+      "data-separator",
+      "data-accordion",
+      "data-aspect-ratio",
+      "data-avatar",
+      "overlays-dialog",
+      "overlays-simple-dialog",
+      "overlays-alert-dialog",
+      "overlays-confirm-dialog",
+      "overlays-confirm-button",
+      "overlays-dropdown-menu",
+      "overlays-row-actions",
+      "overlays-dialog-overlay",
+      "navigation-layout",
+      "navigation-top",
+      "navigation-tabs",
+      "navigation-toolbar",
+      "chat-conversation",
+      "chat-message-bubble",
+      "chat-message-list",
+      "chat-language-handoff",
+      "chat-typing",
+      "details-description",
+      "details-config"
+    ],
+    "collectionCount": 7,
+    "docWidth": 1280,
+    "width": 1280
+  },
+  "homeDesktop": {
+    "docWidth": 1280,
+    "motion": "reduced",
+    "theme": "dark",
+    "width": 1280
+  },
+  "home320": {
+    "docWidth": 320,
+    "formInputWidth": 217,
+    "motion": "reduced",
+    "previewWidth": 284,
+    "width": 320
+  },
+  "docs320": {
+    "docWidth": 320,
+    "tableContent": 282,
+    "tableViewport": 282,
+    "width": 320
+  },
+  "limits": [
+    "Physical mobile/touch, virtual keyboard, Chinese IME, Safari/Firefox, and full accessibility audit not tested.",
+    "The website uses responsive wrappers; library default gaps remain."
+  ],
+  "deployment": {
+    "status": "blocked",
+    "provider": "Vercel",
+    "team": "OpcOrbit",
+    "reason": "403 team scope access",
+    "domain": "ui.opcorbit.com",
+    "dnsConfigured": false
+  },
+  "screenshotFixes": {
+    "checkedAt": "2026-10-13T03:39:37.703Z",
+    "details1600": {
+      "cards": [
+        {
+          "id": "details-description",
+          "scrollWidth": 515,
+          "width": 515
+        },
+        {
+          "id": "details-config",
+          "scrollWidth": 515,
+          "width": 515
+        }
+      ],
+      "configColumns": "223.5px 223.5px",
+      "descriptionColumns": "469px",
+      "docWidth": 1600,
+      "outerColumns": "517px 517px",
+      "values": [
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "Design studio",
+          "width": 348
+        },
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "Active",
+          "width": 348
+        },
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "Asia",
+          "width": 348
+        },
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "\u2014",
+          "width": 348
+        }
+      ],
+      "width": 1600
+    },
+    "details1280": {
+      "cards": [
+        {
+          "id": "details-description",
+          "scrollWidth": 455,
+          "width": 455
+        },
+        {
+          "id": "details-config",
+          "scrollWidth": 455,
+          "width": 455
+        }
+      ],
+      "docWidth": 1280,
+      "values": [
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "Design studio",
+          "width": 288
+        },
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "Active",
+          "width": 288
+        },
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "Asia",
+          "width": 288
+        },
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "\u2014",
+          "width": 288
+        }
+      ],
+      "width": 1280
+    },
+    "details390": {
+      "cards": [
+        {
+          "id": "details-description",
+          "scrollWidth": 352,
+          "width": 352
+        },
+        {
+          "id": "details-config",
+          "scrollWidth": 352,
+          "width": 352
+        }
+      ],
+      "configColumns": "312px",
+      "docWidth": 390,
+      "values": [
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "Design studio",
+          "width": 211
+        },
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "Active",
+          "width": 211
+        },
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "Asia",
+          "width": 211
+        },
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "\u2014",
+          "width": 211
+        }
+      ],
+      "width": 390
+    },
+    "details320": {
+      "cards": [
+        {
+          "id": "details-description",
+          "scrollWidth": 282,
+          "width": 282
+        },
+        {
+          "id": "details-config",
+          "scrollWidth": 282,
+          "width": 282
+        }
+      ],
+      "configColumns": "242px",
+      "docWidth": 320,
+      "values": [
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "Design studio",
+          "width": 160
+        },
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "Active",
+          "width": 160
+        },
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "Asia",
+          "width": 160
+        },
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "\u2014",
+          "width": 160
+        }
+      ],
+      "width": 320
+    },
+    "appearance320": {
+      "popup": {
+        "left": 131,
+        "optionHeights": [
+          44,
+          44,
+          44
+        ],
+        "right": 263,
+        "theme": "dark"
+      },
+      "width": 320
+    },
+    "docsDeepLink": {
+      "active": "Desktop + mobile",
+      "docWidth": 1280,
+      "hash": "#docs-responsive",
+      "headingTop": 103.8984375
+    },
+    "docsManualScroll": {
+      "active": "Motion",
+      "hash": "#docs-motion",
+      "headings": [
+        {
+          "text": "A shared foundation for OpcOrbit.",
+          "top": -3078.1015625
+        },
+        {
+          "text": "Installation",
+          "top": -2105.6171875
+        },
+        {
+          "text": "Theming",
+          "top": -1236.5546875
+        },
+        {
+          "text": "Motion",
+          "top": 103.5703125
+        },
+        {
+          "text": "Desktop + mobile",
+          "top": 714.3984375
+        },
+        {
+          "text": "Releases",
+          "top": 1386.3515625
+        }
+      ]
+    },
+    "selectedDescription1280": {
+      "cardWidth": 928,
+      "columns": "433px 433px",
+      "values": [
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "Design studio",
+          "width": 312
+        },
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "Active",
+          "width": 312
+        },
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "Asia",
+          "width": 312
+        },
+        {
+          "height": 40,
+          "overflow": false,
+          "text": "\u2014",
+          "width": 312
+        }
+      ],
+      "width": 1280
+    },
+    "selectedConfig1280": {
+      "cardScroll": 928,
+      "cardWidth": 928,
+      "columns": "273.328px 273.336px 273.336px",
+      "width": 1280
+    },
+    "selectedConfig320": {
+      "cardScroll": 282,
+      "cardWidth": 282,
+      "columns": "242px",
+      "width": 320
+    },
+    "docs390": {
+      "active": "Desktop + mobile",
+      "docWidth": 390,
+      "headingTop": 88.0546875,
+      "width": 390
+    }
+  },
+  "typography": {
+    "checkedAt": "2026-10-13T04:15:14.228Z",
+    "reference": "https://www.anthropic.com/",
+    "referenceDesktop": {
+      "hero": 57.73,
+      "lead": 24,
+      "readingText": 18
+    },
+    "referenceMobile": {
+      "hero": 40.29,
+      "lead": 24,
+      "readingText": 18
+    },
+    "desktop": {
+      "actionsLeft": 947.2890625,
+      "brandRight": 286.0703125,
+      "brands": [
+        {
+          "size": "30px",
+          "text": "x-ui / ",
+          "weight": "700"
+        },
+        {
+          "size": "30px",
+          "text": "OPCORBIT",
+          "weight": "700"
+        }
+      ],
+      "docWidth": 1280,
+      "hero": "57.6px",
+      "lead": "24px",
+      "nav": "18px",
+      "navLeft": 330.0703125,
+      "navRight": 681.1953125,
+      "width": 1280
+    },
+    "tablet": {
+      "actionsLeft": 613.5,
+      "brandRight": 248.5703125,
+      "docWidth": 810,
+      "navLeft": 274.5703125,
+      "navRight": 570.234375,
+      "width": 810
+    },
+    "home320": {
+      "actionsLeft": 173,
+      "brandRight": 140.7421875,
+      "brands": [
+        "17px",
+        "17px"
+      ],
+      "docWidth": 320,
+      "hero": "40px",
+      "inputFont": "16px",
+      "lead": "24px",
+      "preview": {
+        "scrollWidth": 282,
+        "width": 282
+      },
+      "tiles": [
+        {
+          "scrollWidth": 282,
+          "width": 282
+        },
+        {
+          "scrollWidth": 282,
+          "width": 282
+        },
+        {
+          "scrollWidth": 282,
+          "width": 282
+        },
+        {
+          "scrollWidth": 282,
+          "width": 282
+        }
+      ],
+      "width": 320
+    },
+    "docs320": {
+      "active": "Desktop + mobile",
+      "bodyFont": "16px",
+      "codeFont": "14px",
+      "docWidth": 320,
+      "sidebarFont": "16px",
+      "tableScrollWidth": 282,
+      "tableWidth": 282,
+      "width": 320
+    },
+    "details320": {
+      "cardScrollWidth": 282,
+      "cardWidth": 282,
+      "docWidth": 320,
+      "values": [
+        {
+          "font": "16px",
+          "height": 44,
+          "scrollWidth": 160,
+          "text": "Design studio",
+          "width": 160
+        },
+        {
+          "font": "16px",
+          "height": 44,
+          "scrollWidth": 160,
+          "text": "Active",
+          "width": 160
+        },
+        {
+          "font": "16px",
+          "height": 44,
+          "scrollWidth": 160,
+          "text": "Asia",
+          "width": 160
+        },
+        {
+          "font": "16px",
+          "height": 44,
+          "scrollWidth": 160,
+          "text": "\u2014",
+          "width": 160
+        }
+      ],
+      "width": 320
+    },
+    "home390": {
+      "brands": [
+        {
+          "size": "22px",
+          "weight": "700"
+        },
+        {
+          "size": "22px",
+          "weight": "700"
+        }
+      ],
+      "docWidth": 390,
+      "previewScrollWidth": 344,
+      "previewWidth": 344,
+      "width": 390
+    }
+  },
+  "wordmarkOpticalSizing": {
+    "checkedAt": "2026-10-13T04:39:19.108771+00:00",
+    "reason": "Equal font sizes matched the dot-inclusive height of x-ui, but OPCORBIT capitals looked larger than the lowercase letter bodies. OPCORBIT now uses approximately 78 percent of the x-ui size with a shared baseline.",
+    "checks": {
+      "desktop": {
+        "brands": [
+          {
+            "size": "23px",
+            "text": "x-ui / ",
+            "weight": "700"
+          },
+          {
+            "size": "18px",
+            "text": "OPCORBIT",
+            "weight": "700"
+          }
+        ],
+        "docWidth": 1280,
+        "width": 1280
+      },
+      "mobile390": {
+        "brands": [
+          {
+            "size": "20px",
+            "text": "x-ui / "
+          },
+          {
+            "size": "15.6px",
+            "text": "OPCORBIT"
+          }
+        ],
+        "docWidth": 390,
+        "width": 390
+      },
+      "mobile320": {
+        "brands": [
+          {
+            "size": "17px",
+            "text": "x-ui / "
+          },
+          {
+            "size": "13.3px",
+            "text": "OPCORBIT"
+          }
+        ],
+        "docWidth": 320,
+        "width": 320
+      }
+    },
+    "screenshot": "wordmark-optical-balanced.png"
+  }
+}

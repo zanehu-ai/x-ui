@@ -107,17 +107,17 @@ export function ConversationView({
   return (
     <div
       className={cn(
-        'flex h-full max-h-[640px] min-h-[400px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm',
+        'flex h-full max-h-[640px] min-h-[400px] flex-col overflow-hidden rounded-lg border border-[var(--x-ui-border,var(--color-slate-200,#e2e8f0))] bg-[var(--x-ui-surface,var(--color-white,#fff))] shadow-sm',
         className,
       )}
       data-testid="chat-conversation-view"
     >
-      <div className="flex items-center justify-between gap-2 border-b border-slate-200 bg-slate-50 px-3 py-2">
+      <div className="flex items-center justify-between gap-2 border-b border-[var(--x-ui-border,var(--color-slate-200,#e2e8f0))] bg-[var(--x-ui-muted,var(--color-slate-50,#f8fafc))] px-3 py-2">
         <div className="flex flex-col">
-          <span className="text-sm font-semibold text-slate-900">
+          <span className="text-sm font-semibold text-[color:var(--x-ui-fg,var(--color-slate-900,#0f172a))]">
             {chatT(localLang, 'roles.ai')}
           </span>
-          <span className="font-mono text-[10px] text-slate-500">{conversationId}</span>
+          <span className="font-mono text-[10px] text-[color:var(--x-ui-muted-fg,var(--color-slate-500,#64748b))]">{conversationId}</span>
         </div>
         <div className="flex items-center gap-2">
           <TransferToHumanButton

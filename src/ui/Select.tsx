@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as SelectPrimitive from '@radix-ui/react-select'
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
 import { cn } from '../utils/cn'
+import { useThemeSurface } from '../theme/ThemeProvider'
 
 export type SelectOption = {
   label: React.ReactNode
@@ -30,7 +31,7 @@ function SelectTrigger({
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       className={cn(
-        'flex h-10 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition-colors placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+        'flex h-10 w-full items-center justify-between rounded-lg border border-[color:var(--x-ui-border,var(--color-gray-300,#d1d5db))] bg-[var(--x-ui-surface,var(--color-white,#fff))] px-3 py-2 text-sm outline-none transition-colors placeholder:text-[color:var(--x-ui-muted-fg,var(--color-gray-400,#9ca3af))] focus:border-[color:var(--x-ui-focus,var(--color-blue-500,#3b82f6))] focus:ring-2 focus:ring-[color:var(--x-ui-focus,var(--color-blue-500,#3b82f6))]/20 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
         className,
       )}
       {...props}
@@ -46,19 +47,25 @@ function SelectTrigger({
 function SelectContent({
   className,
   children,
+  style,
   position = 'popper',
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
+  const { className: themeClassName, style: themeStyle, ...themeAttrs } = useThemeSurface()
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
+        {...themeAttrs}
         data-slot="select-content"
         className={cn(
-          'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-lg border bg-white text-gray-900 shadow-md data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
+          'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-lg border bg-[var(--x-ui-surface,var(--color-white,#fff))] text-[color:var(--x-ui-fg,var(--color-gray-900,#111827))] shadow-md data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
           position === 'popper' &&
             'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
+          themeClassName,
+          themeClassName && 'border-[color:var(--x-ui-border)]',
           className,
         )}
+        style={{ ...themeStyle, ...style }}
         position={position}
         {...props}
       >
@@ -100,7 +107,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        'relative flex w-full cursor-default select-none items-center gap-2 rounded-md py-1.5 pr-8 pl-2 text-sm outline-none focus:bg-blue-50 focus:text-blue-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        'relative flex w-full cursor-default select-none items-center gap-2 rounded-md py-1.5 pr-8 pl-2 text-sm outline-none focus:bg-[var(--x-ui-muted,var(--color-blue-50,#eff6ff))] focus:text-[color:var(--x-ui-fg,var(--color-blue-900,#1e3a8a))] data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         className,
       )}
       {...props}
@@ -122,7 +129,7 @@ function SelectSeparator({
   return (
     <SelectPrimitive.Separator
       data-slot="select-separator"
-      className={cn('-mx-1 my-1 h-px bg-gray-200', className)}
+      className={cn('-mx-1 my-1 h-px bg-[var(--x-ui-border,var(--color-gray-200,#e5e7eb))]', className)}
       {...props}
     />
   )
@@ -313,7 +320,7 @@ function SelectField({
         aria-label={ariaLabel}
         aria-labelledby={!ariaLabel && label ? labelId : undefined}
         className={cn(
-          'flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-left text-sm text-gray-950 shadow-sm outline-none transition-colors placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50',
+          'flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-[color:var(--x-ui-border,var(--color-gray-300,#d1d5db))] bg-[var(--x-ui-surface,var(--color-white,#fff))] px-3 py-2 text-left text-sm text-[color:var(--x-ui-fg,var(--color-gray-950,#030712))] shadow-sm outline-none transition-colors placeholder:text-[color:var(--x-ui-muted-fg,var(--color-gray-400,#9ca3af))] focus:border-[color:var(--x-ui-focus,var(--color-blue-500,#3b82f6))] focus:ring-2 focus:ring-[color:var(--x-ui-focus,var(--color-blue-500,#3b82f6))]/20 disabled:cursor-not-allowed disabled:opacity-50',
           className,
         )}
         disabled={disabled}
@@ -323,14 +330,14 @@ function SelectField({
         role="combobox"
         type="button"
       >
-        <span className={cn('truncate', !selectedOption && 'text-gray-400')}>
+        <span className={cn('truncate', !selectedOption && 'text-[color:var(--x-ui-muted-fg,var(--color-gray-400,#9ca3af))]')}>
           {selectedOption ? selectedLabel : (placeholder ?? '')}
         </span>
-        <ChevronDownIcon aria-hidden="true" className="size-4 shrink-0 text-gray-400" />
+        <ChevronDownIcon aria-hidden="true" className="size-4 shrink-0 text-[color:var(--x-ui-muted-fg,var(--color-gray-400,#9ca3af))]" />
       </button>
       {open ? (
         <div
-          className="absolute z-50 mt-1 max-h-72 w-full overflow-auto rounded-lg border border-gray-200 bg-white p-1 text-sm text-gray-950 shadow-lg"
+          className="absolute z-50 mt-1 max-h-72 w-full overflow-auto rounded-lg border border-[color:var(--x-ui-border,var(--color-gray-200,#e5e7eb))] bg-[var(--x-ui-surface,var(--color-white,#fff))] p-1 text-sm text-[color:var(--x-ui-fg,var(--color-gray-950,#030712))] shadow-lg"
           id={listboxId}
           role="listbox"
         >
@@ -343,9 +350,9 @@ function SelectField({
                 className={cn(
                   'flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left transition-colors',
                   option.disabled
-                    ? 'cursor-not-allowed text-gray-400'
-                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-900',
-                  selected && 'bg-blue-50 text-blue-900',
+                    ? 'cursor-not-allowed text-[color:var(--x-ui-muted-fg,var(--color-gray-400,#9ca3af))]'
+                    : 'text-[color:var(--x-ui-fg,var(--color-gray-700,#374151))] hover:bg-[var(--x-ui-muted,var(--color-blue-50,#eff6ff))] hover:text-[color:var(--x-ui-fg,var(--color-blue-900,#1e3a8a))]',
+                  selected && 'bg-[var(--x-ui-muted,var(--color-blue-50,#eff6ff))] text-[color:var(--x-ui-fg,var(--color-blue-900,#1e3a8a))]',
                 )}
                 disabled={option.disabled}
                 key={option.value}
@@ -364,10 +371,10 @@ function SelectField({
   )
   if (!label && !hint) return select
   return (
-    <div className="block space-y-1 text-sm font-medium text-gray-700">
+    <div className="block space-y-1 text-sm font-medium text-[color:var(--x-ui-fg,var(--color-gray-700,#374151))]">
       {label ? <span id={labelId}>{label}</span> : null}
       {select}
-      {hint ? <span id={hintId} className="block text-xs font-normal text-gray-500">{hint}</span> : null}
+      {hint ? <span id={hintId} className="block text-xs font-normal text-[color:var(--x-ui-muted-fg,var(--color-gray-500,#6b7280))]">{hint}</span> : null}
     </div>
   )
 }

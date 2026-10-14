@@ -24,6 +24,20 @@ jobs:
       - name: TypeScript Check
         run: npx tsc --noEmit
 
-      - run: npm publish
+      - name: Validate release version and choose package channel
+        id: release
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          if [[ "$GITHUB_REF_NAME" != "v$version" ]]; then
+            echo "::error::Release tag must match package.json version v$version"
+            exit 1
+          fi
+          channel=latest
+          if [[ "$version" == *-* ]]; then
+            channel=next
+          fi
+          echo "channel=$channel" >> "$GITHUB_OUTPUT"
+
+      - run: npm publish --tag "${{ steps.release.outputs.channel }}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

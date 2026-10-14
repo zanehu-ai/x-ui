@@ -33,18 +33,18 @@ export function MessageList({
     <div
       ref={ref}
       className={cn(
-        'flex-1 overflow-y-auto px-3 py-4 space-y-3 bg-white',
+        'flex-1 overflow-y-auto px-3 py-4 space-y-3 bg-[var(--x-ui-surface,var(--color-white,#fff))]',
         className,
       )}
     >
       {loading ? (
-        <p className="text-center text-xs text-slate-500">
+        <p className="text-center text-xs text-[color:var(--x-ui-muted-fg,var(--color-slate-500,#64748b))]">
           {chatT(language, 'messages.loading')}
         </p>
       ) : null}
       {!loading && messages.length === 0 ? (
         <div className="flex h-full items-center justify-center">
-          <p className="max-w-xs text-center text-sm text-slate-500">
+          <p className="max-w-xs text-center text-sm text-[color:var(--x-ui-muted-fg,var(--color-slate-500,#64748b))]">
             {chatT(language, 'messages.empty')}
           </p>
         </div>

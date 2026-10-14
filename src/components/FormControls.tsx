@@ -27,20 +27,20 @@ export function CheckboxField({
   return (
     <label
       className={cn(
-        'flex items-start gap-2 rounded-sm text-sm text-gray-700',
+        'flex items-start gap-2 rounded-sm text-sm text-[color:var(--x-ui-fg,var(--color-gray-700,#374151))]',
         disabled && 'cursor-not-allowed opacity-60',
         className,
       )}
     >
       <Checkbox
         checked={checked}
-        className="mt-0.5 border-gray-300 data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white"
+        className="mt-0.5 border-[var(--x-ui-border,var(--color-gray-300,#d1d5db))] data-[state=checked]:border-[var(--x-ui-primary,var(--color-blue-600,#2563eb))] data-[state=checked]:bg-[var(--x-ui-primary,var(--color-blue-600,#2563eb))] data-[state=checked]:text-[color:var(--x-ui-primary-fg,var(--color-white,#fff))]"
         disabled={disabled}
         onCheckedChange={(next) => onCheckedChange(next === true)}
       />
       <span>
         <span className="font-medium">{label}</span>
-        {hint ? <span className="mt-1 block text-xs font-normal text-gray-500">{hint}</span> : null}
+        {hint ? <span className="mt-1 block text-xs font-normal text-[color:var(--x-ui-muted-fg,var(--color-gray-500,#6b7280))]">{hint}</span> : null}
       </span>
     </label>
   )
@@ -67,8 +67,8 @@ export function ToggleChip({
       className={cn(
         'h-8 border px-3 text-sm',
         active
-          ? 'border-blue-600 bg-blue-600 text-white hover:bg-blue-700'
-          : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
+          ? 'border-[var(--x-ui-primary,var(--color-blue-600,#2563eb))] bg-[var(--x-ui-primary,var(--color-blue-600,#2563eb))] text-[color:var(--x-ui-primary-fg,var(--color-white,#fff))] hover:bg-[var(--x-ui-primary-hover,var(--color-blue-700,#1d4ed8))]'
+          : 'border-[var(--x-ui-border,var(--color-gray-300,#d1d5db))] bg-[var(--x-ui-surface,var(--color-white,#fff))] text-[color:var(--x-ui-fg,var(--color-gray-700,#374151))] hover:bg-[var(--x-ui-muted,var(--color-gray-50,#f9fafb))]',
         className,
       )}
       disabled={disabled}
@@ -90,7 +90,7 @@ export function RangeInput({ className, hint, label, ...props }: RangeInputProps
   const range = (
     <input
       className={cn(
-        'h-2 w-full cursor-pointer accent-blue-600 disabled:cursor-not-allowed disabled:opacity-50',
+        'h-2 w-full cursor-pointer accent-[var(--x-ui-primary,var(--color-blue-600,#2563eb))] disabled:cursor-not-allowed disabled:opacity-50',
         className,
       )}
       type="range"
@@ -99,10 +99,10 @@ export function RangeInput({ className, hint, label, ...props }: RangeInputProps
   )
   if (!label && !hint) return range
   return (
-    <label className="block space-y-1 text-sm font-medium text-gray-700">
+    <label className="block space-y-1 text-sm font-medium text-[color:var(--x-ui-fg,var(--color-gray-700,#374151))]">
       {label ? <span>{label}</span> : null}
       {range}
-      {hint ? <span className="block text-xs font-normal text-gray-500">{hint}</span> : null}
+      {hint ? <span className="block text-xs font-normal text-[color:var(--x-ui-muted-fg,var(--color-gray-500,#6b7280))]">{hint}</span> : null}
     </label>
   )
 }
@@ -117,7 +117,7 @@ export const FileInput = forwardRef<HTMLInputElement, FileInputProps>(function F
     <input
       ref={ref}
       className={cn(
-        'block w-full rounded-md border border-gray-300 bg-white text-sm text-gray-700 shadow-sm transition-colors file:mr-3 file:h-10 file:border-0 file:border-r file:border-gray-200 file:bg-gray-50 file:px-3 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500',
+        'block w-full rounded-md border border-[var(--x-ui-border,var(--color-gray-300,#d1d5db))] bg-[var(--x-ui-surface,var(--color-white,#fff))] text-sm text-[color:var(--x-ui-fg,var(--color-gray-700,#374151))] shadow-sm transition-colors file:mr-3 file:h-10 file:border-0 file:border-r file:border-[var(--x-ui-border,var(--color-gray-200,#e5e7eb))] file:bg-[var(--x-ui-muted,var(--color-gray-50,#f9fafb))] file:px-3 file:text-sm file:font-medium file:text-[color:var(--x-ui-fg,var(--color-gray-700,#374151))] hover:file:bg-[var(--x-ui-muted,var(--color-gray-100,#f3f4f6))] focus:border-[var(--x-ui-focus,var(--color-blue-500,#3b82f6))] focus:outline-none focus:ring-2 focus:ring-[color:var(--x-ui-focus,var(--color-blue-500,#3b82f6))]/20 disabled:cursor-not-allowed disabled:bg-[var(--x-ui-muted,var(--color-gray-50,#f9fafb))] disabled:text-[color:var(--x-ui-muted-fg,var(--color-gray-500,#6b7280))]',
         className,
       )}
       type="file"

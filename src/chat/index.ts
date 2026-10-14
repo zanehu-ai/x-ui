@@ -1,4 +1,4 @@
-// @zanehu-ai/synapse-ui/chat — embeddable chat widget components for the V1
+// @zanehu-ai/x-ui/chat — embeddable chat widget components for the V1
 // AI customer service web widget. Pure presentational shell; routing,
 // §8.1 hard-rule, and AI invocation logic stay backend-side per ADR-010.
 export { ConversationView } from './ConversationView'

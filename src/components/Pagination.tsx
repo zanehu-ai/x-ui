@@ -41,14 +41,14 @@ export function Pagination({
     .replace('{pages}', String(totalPages))
 
   return (
-    <div className={cn('flex items-center justify-between border-t border-gray-200 px-4 py-3', className)}>
-      <span className="text-sm text-gray-500">{summary}</span>
+    <div className={cn('flex items-center justify-between border-t border-[var(--x-ui-border,var(--color-gray-200,#e5e7eb))] px-4 py-3', className)}>
+      <span className="text-sm text-[color:var(--x-ui-muted-fg,var(--color-gray-500,#6b7280))]">{summary}</span>
       <div className="flex items-center gap-2">
         {onPageSizeChange && pageSizeOptions && (
           <select
             value={pageSize}
             onChange={(e) => onPageSizeChange(Number(e.target.value))}
-            className="h-8 rounded-md border border-gray-300 bg-white px-2 text-sm text-gray-700"
+            className="h-8 rounded-md border border-[var(--x-ui-border,var(--color-gray-300,#d1d5db))] bg-[var(--x-ui-surface,var(--color-white,#fff))] px-2 text-sm text-[color:var(--x-ui-fg,var(--color-gray-700,#374151))]"
           >
             {pageSizeOptions.map((size) => (
               <option key={size} value={size}>
@@ -58,14 +58,14 @@ export function Pagination({
           </select>
         )}
         <button
-          className="inline-flex h-8 items-center justify-center rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-700 hover:bg-gray-50 disabled:pointer-events-none disabled:opacity-50"
+          className="inline-flex h-8 items-center justify-center rounded-md border border-[var(--x-ui-border,var(--color-gray-300,#d1d5db))] bg-[var(--x-ui-surface,var(--color-white,#fff))] px-3 text-sm text-[color:var(--x-ui-fg,var(--color-gray-700,#374151))] hover:bg-[var(--x-ui-muted,var(--color-gray-50,#f9fafb))] disabled:pointer-events-none disabled:opacity-50"
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
         >
           {prevLabel}
         </button>
         <button
-          className="inline-flex h-8 items-center justify-center rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-700 hover:bg-gray-50 disabled:pointer-events-none disabled:opacity-50"
+          className="inline-flex h-8 items-center justify-center rounded-md border border-[var(--x-ui-border,var(--color-gray-300,#d1d5db))] bg-[var(--x-ui-surface,var(--color-white,#fff))] px-3 text-sm text-[color:var(--x-ui-fg,var(--color-gray-700,#374151))] hover:bg-[var(--x-ui-muted,var(--color-gray-50,#f9fafb))] disabled:pointer-events-none disabled:opacity-50"
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
         >

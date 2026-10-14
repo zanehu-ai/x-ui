@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 ## 项目概述
-synapse-ui — 跨产品前端共享组件库，为所有前端项目提供统一的 UI 组件、基础设施和国际化方案。
+x-ui — 跨产品前端共享组件库，为前端项目提供统一的 UI 组件、基础设施和国际化方案。仓库名为 `x-ui`，npm 包已迁移为 `@zanehu-ai/x-ui`。
 
 ## 技术栈
 - React 18/19 + TypeScript 5
@@ -12,6 +12,8 @@ synapse-ui — 跨产品前端共享组件库，为所有前端项目提供统�
 
 ## 架构
 纯 npm library（无独立运行入口），按功能分目录：
+
+本地 R&D 工作区归类到 `libraries/x-ui`。保留 `src/index.ts`、现有深层导出和 `dist` 发布路径；本次 npm 身份迁移为 `@zanehu-ai/x-ui`，尚未发布；0.1.8 消费方通过仅改身份的本地兼容包保留原始 dist。消费方通过声明的依赖安装 React 类型，不再从兄弟 `admin`/`portal` 目录建立类型符号链接。
 
 ```
 src/
@@ -40,7 +42,7 @@ git push origin main --tags
 ```
 
 ## 消费方
-- 818-cargo admin/portal（`npm install @zanehu-ai/synapse-ui`）
+- 818-cargo admin/portal（`npm install @zanehu-ai/x-ui`）
 - 未来所有前端产品
 
 ## 规范

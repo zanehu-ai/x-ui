@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
 import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react'
 import { cn } from '../utils/cn'
+import { useThemeSurface } from '../theme/ThemeProvider'
 
 function DropdownMenu({ ...props }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
   return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />
@@ -17,18 +18,24 @@ function DropdownMenuPortal({ ...props }: React.ComponentProps<typeof DropdownMe
 
 function DropdownMenuContent({
   className,
+  style,
   sideOffset = 4,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
+  const { className: themeClassName, style: themeStyle, ...themeAttrs } = useThemeSurface()
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
+        {...themeAttrs}
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
         className={cn(
-          'z-50 min-w-[8rem] overflow-hidden rounded-lg border bg-white p-1 text-gray-900 shadow-md data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
+          'z-50 min-w-[8rem] overflow-hidden rounded-lg border bg-[var(--x-ui-surface,var(--color-white,#fff))] p-1 text-[color:var(--x-ui-fg,var(--color-gray-900,#111827))] shadow-md data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
+          themeClassName,
+          themeClassName && 'border-[color:var(--x-ui-border)]',
           className,
         )}
+        style={{ ...themeStyle, ...style }}
         {...props}
       />
     </DropdownMenuPrimitive.Portal>
@@ -50,7 +57,7 @@ function DropdownMenuItem({
       data-inset={inset}
       data-variant={variant}
       className={cn(
-        'relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none transition-colors focus:bg-gray-100 focus:text-gray-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-red-600 data-[variant=destructive]:focus:bg-red-50',
+        'relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none transition-colors focus:bg-[var(--x-ui-muted,var(--color-gray-100,#f3f4f6))] focus:text-[color:var(--x-ui-fg,var(--color-gray-900,#111827))] data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-[color:var(--x-ui-danger,var(--color-red-600,#dc2626))] data-[variant=destructive]:focus:bg-[var(--x-ui-danger-bg,var(--color-red-50,#fef2f2))]',
         className,
       )}
       {...props}
@@ -68,7 +75,7 @@ function DropdownMenuCheckboxItem({
     <DropdownMenuPrimitive.CheckboxItem
       data-slot="dropdown-menu-checkbox-item"
       className={cn(
-        'relative flex cursor-default select-none items-center rounded-md py-1.5 pr-2 pl-8 text-sm outline-none transition-colors focus:bg-gray-100 focus:text-gray-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        'relative flex cursor-default select-none items-center rounded-md py-1.5 pr-2 pl-8 text-sm outline-none transition-colors focus:bg-[var(--x-ui-muted,var(--color-gray-100,#f3f4f6))] focus:text-[color:var(--x-ui-fg,var(--color-gray-900,#111827))] data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         className,
       )}
       checked={checked}
@@ -97,7 +104,7 @@ function DropdownMenuRadioItem({
     <DropdownMenuPrimitive.RadioItem
       data-slot="dropdown-menu-radio-item"
       className={cn(
-        'relative flex cursor-default select-none items-center rounded-md py-1.5 pr-2 pl-8 text-sm outline-none transition-colors focus:bg-gray-100 focus:text-gray-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        'relative flex cursor-default select-none items-center rounded-md py-1.5 pr-2 pl-8 text-sm outline-none transition-colors focus:bg-[var(--x-ui-muted,var(--color-gray-100,#f3f4f6))] focus:text-[color:var(--x-ui-fg,var(--color-gray-900,#111827))] data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         className,
       )}
       {...props}
@@ -134,7 +141,7 @@ function DropdownMenuSeparator({
   return (
     <DropdownMenuPrimitive.Separator
       data-slot="dropdown-menu-separator"
-      className={cn('-mx-1 my-1 h-px bg-gray-200', className)}
+      className={cn('-mx-1 my-1 h-px bg-[var(--x-ui-border,var(--color-gray-200,#e5e7eb))]', className)}
       {...props}
     />
   )
@@ -165,7 +172,7 @@ function DropdownMenuSubTrigger({
       data-slot="dropdown-menu-sub-trigger"
       data-inset={inset}
       className={cn(
-        'flex cursor-default select-none items-center rounded-md px-2 py-1.5 text-sm outline-none focus:bg-gray-100 data-[state=open]:bg-gray-100 data-[inset]:pl-8',
+        'flex cursor-default select-none items-center rounded-md px-2 py-1.5 text-sm outline-none focus:bg-[var(--x-ui-muted,var(--color-gray-100,#f3f4f6))] data-[state=open]:bg-[var(--x-ui-muted,var(--color-gray-100,#f3f4f6))] data-[inset]:pl-8',
         className,
       )}
       {...props}
@@ -178,15 +185,21 @@ function DropdownMenuSubTrigger({
 
 function DropdownMenuSubContent({
   className,
+  style,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.SubContent>) {
+  const { className: themeClassName, style: themeStyle, ...themeAttrs } = useThemeSurface()
   return (
     <DropdownMenuPrimitive.SubContent
+      {...themeAttrs}
       data-slot="dropdown-menu-sub-content"
       className={cn(
-        'z-50 min-w-[8rem] overflow-hidden rounded-lg border bg-white p-1 text-gray-900 shadow-lg data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
+        'z-50 min-w-[8rem] overflow-hidden rounded-lg border bg-[var(--x-ui-surface,var(--color-white,#fff))] p-1 text-[color:var(--x-ui-fg,var(--color-gray-900,#111827))] shadow-lg data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
+        themeClassName,
+        themeClassName && 'border-[color:var(--x-ui-border)]',
         className,
       )}
+      style={{ ...themeStyle, ...style }}
       {...props}
     />
   )

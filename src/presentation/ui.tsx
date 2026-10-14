@@ -41,14 +41,14 @@ export function SimpleDialog({
         onInteractOutside={(event) => event.preventDefault()}
         onPointerDownOutside={(event) => event.preventDefault()}
       >
-        <DialogHeader className="mb-0 shrink-0 border-b border-slate-200 px-5 py-4 pr-12">
+        <DialogHeader className="mb-0 shrink-0 border-b border-[var(--x-ui-border,var(--color-slate-200,#e2e8f0))] px-5 py-4 pr-12">
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <div className={['min-h-0 flex-1 p-5', bodyClassName ?? 'overflow-y-auto'].join(' ')}>
           {children}
         </div>
         {footer ? (
-          <div className="flex shrink-0 justify-end gap-2 border-t border-slate-200 bg-slate-50 px-5 py-3">
+          <div className="flex shrink-0 justify-end gap-2 border-t border-[var(--x-ui-border,var(--color-slate-200,#e2e8f0))] bg-[var(--x-ui-muted,var(--color-slate-50,#f8fafc))] px-5 py-3">
             {footer}
           </div>
         ) : null}
@@ -118,8 +118,8 @@ export function ToggleChip({
       className={[
         'h-8 border px-3 text-sm',
         active
-          ? 'border-blue-600 bg-blue-600 text-white hover:bg-blue-700'
-          : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
+          ? 'border-[var(--x-ui-primary,var(--color-blue-600,#2563eb))] bg-[var(--x-ui-primary,var(--color-blue-600,#2563eb))] text-[color:var(--x-ui-primary-fg,var(--color-white,#fff))] hover:bg-[var(--x-ui-primary-hover,var(--color-blue-700,#1d4ed8))]'
+          : 'border-[var(--x-ui-border,var(--color-gray-300,#d1d5db))] bg-[var(--x-ui-surface,var(--color-white,#fff))] text-[color:var(--x-ui-fg,var(--color-gray-700,#374151))] hover:bg-[var(--x-ui-muted,var(--color-gray-50,#f9fafb))]',
         className,
       ].filter(Boolean).join(' ')}
       disabled={disabled}

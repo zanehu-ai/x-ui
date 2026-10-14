@@ -21,15 +21,15 @@ export function MessageBubble({ message, language = 'ru', className }: MessageBu
 
   const bubbleClass = useMemo(() => {
     if (isSystem) {
-      return 'rounded-md bg-slate-100 px-3 py-1.5 text-xs text-slate-600'
+      return 'rounded-md bg-[var(--x-ui-muted,var(--color-slate-100,#f1f5f9))] px-3 py-1.5 text-xs text-[color:var(--x-ui-muted-fg,var(--color-slate-600,#475569))]'
     }
     if (isUser) {
-      return 'max-w-[78%] rounded-2xl rounded-br-sm bg-sky-600 px-4 py-2 text-sm text-white shadow-sm'
+      return 'max-w-[78%] rounded-2xl rounded-br-sm bg-[var(--x-ui-message-bg,var(--color-sky-600,#0284c7))] px-4 py-2 text-sm text-[color:var(--x-ui-message-fg,var(--color-white,#fff))] shadow-sm'
     }
     if (message.role === 'agent') {
-      return 'max-w-[78%] rounded-2xl rounded-bl-sm bg-emerald-50 px-4 py-2 text-sm text-emerald-950 shadow-sm border border-emerald-200'
+      return 'max-w-[78%] rounded-2xl rounded-bl-sm bg-[var(--x-ui-success-bg,var(--color-emerald-50,#ecfdf5))] px-4 py-2 text-sm text-[color:var(--x-ui-success-fg,var(--color-emerald-950,#022c22))] shadow-sm border border-[var(--x-ui-success-border,var(--color-emerald-200,#a7f3d0))]'
     }
-    return 'max-w-[78%] rounded-2xl rounded-bl-sm bg-slate-100 px-4 py-2 text-sm text-slate-900 shadow-sm'
+    return 'max-w-[78%] rounded-2xl rounded-bl-sm bg-[var(--x-ui-muted,var(--color-slate-100,#f1f5f9))] px-4 py-2 text-sm text-[color:var(--x-ui-fg,var(--color-slate-900,#0f172a))] shadow-sm'
   }, [isSystem, isUser, message.role])
 
   const roleLabel = chatT(language, `roles.${message.role}`)
@@ -45,7 +45,7 @@ export function MessageBubble({ message, language = 'ru', className }: MessageBu
         {!isSystem ? (
           <span
             className={cn(
-              'text-xs text-slate-500',
+              'text-xs text-[color:var(--x-ui-muted-fg,var(--color-slate-500,#64748b))]',
               isUser ? 'self-end' : 'self-start',
             )}
           >
@@ -58,7 +58,7 @@ export function MessageBubble({ message, language = 'ru', className }: MessageBu
         {timestamp && hovered && !isSystem ? (
           <span
             className={cn(
-              'text-[10px] text-slate-400',
+              'text-[10px] text-[color:var(--x-ui-muted-fg,var(--color-slate-400,#94a3b8))]',
               isUser ? 'self-end' : 'self-start',
             )}
           >

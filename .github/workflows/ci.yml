@@ -1,4 +1,4 @@
-# synapse-ui CI
+# x-ui CI
 name: CI
 
 on:

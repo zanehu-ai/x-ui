@@ -2,7 +2,7 @@ import type { ComponentType, ReactNode } from 'react'
 import { cn } from '../utils/cn'
 
 const navFocusClass =
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--x-ui-focus,var(--color-blue-600,#2563eb))]'
 
 export interface NavigationLinkProps {
   'aria-current'?: 'page'
@@ -42,7 +42,7 @@ export function TopNavigation({
             className={cn(
               'inline-flex h-9 items-center rounded-md px-3 text-sm font-medium transition-colors',
               navFocusClass,
-              active ? 'bg-gray-950 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-950',
+              active ? 'bg-[var(--x-ui-primary,var(--color-gray-950,#030712))] text-[color:var(--x-ui-primary-fg,var(--color-white,#fff))] shadow-sm' : 'text-[color:var(--x-ui-muted-fg,var(--color-gray-600,#4b5563))] hover:bg-[var(--x-ui-muted,var(--color-gray-100,#f3f4f6))] hover:text-[color:var(--x-ui-fg,var(--color-gray-950,#030712))]',
             )}
             key={item.id}
             to={item.to}
@@ -80,10 +80,10 @@ export function SidebarNavigation({
   notice,
 }: SidebarNavigationProps) {
   return (
-    <nav aria-label={ariaLabel} className="space-y-3 text-sm text-gray-700">
+    <nav aria-label={ariaLabel} className="space-y-3 text-sm text-[color:var(--x-ui-fg,var(--color-gray-700,#374151))]">
       <div>
         {groupLabel ? (
-          <p className="px-3 pb-2 pt-1 text-xs font-semibold uppercase tracking-wide text-gray-400">
+          <p className="px-3 pb-2 pt-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--x-ui-muted-fg,var(--color-gray-400,#9ca3af))]">
             {groupLabel}
           </p>
         ) : null}
@@ -100,7 +100,7 @@ export function SidebarNavigation({
         </div>
       </div>
       {notice ? (
-        <p className="rounded-md bg-gray-50 px-3 py-2 text-xs leading-5 text-gray-500">
+        <p className="rounded-md bg-[var(--x-ui-muted,var(--color-gray-50,#f9fafb))] px-3 py-2 text-xs leading-5 text-[color:var(--x-ui-muted-fg,var(--color-gray-500,#6b7280))]">
           {notice}
         </p>
       ) : null}
@@ -133,19 +133,19 @@ function SidebarNavigationLink({
             : 'min-h-8 px-3 py-1.5 text-xs',
           navFocusClass,
           selfActive
-            ? 'bg-gray-950 text-white shadow-sm'
+            ? 'bg-[var(--x-ui-primary,var(--color-gray-950,#030712))] text-[color:var(--x-ui-primary-fg,var(--color-white,#fff))] shadow-sm'
             : active
-              ? 'bg-gray-100 text-gray-950'
+              ? 'bg-[var(--x-ui-muted,var(--color-gray-100,#f3f4f6))] text-[color:var(--x-ui-fg,var(--color-gray-950,#030712))]'
               : root
-                ? 'text-gray-600 hover:bg-gray-50 hover:text-gray-950'
-                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-950',
+                ? 'text-[color:var(--x-ui-muted-fg,var(--color-gray-600,#4b5563))] hover:bg-[var(--x-ui-muted,var(--color-gray-50,#f9fafb))] hover:text-[color:var(--x-ui-fg,var(--color-gray-950,#030712))]'
+                : 'text-[color:var(--x-ui-muted-fg,var(--color-gray-500,#6b7280))] hover:bg-[var(--x-ui-muted,var(--color-gray-50,#f9fafb))] hover:text-[color:var(--x-ui-fg,var(--color-gray-950,#030712))]',
         )}
         to={item.to}
       >
         {item.label}
       </LinkComponent>
       {item.children?.length ? (
-        <div className="ml-3 mt-1 space-y-1 border-l border-gray-200 pl-2">
+        <div className="ml-3 mt-1 space-y-1 border-l border-[var(--x-ui-border,var(--color-gray-200,#e5e7eb))] pl-2">
           {item.children.map((child) => (
             <SidebarNavigationLink
               activePath={activePath}
