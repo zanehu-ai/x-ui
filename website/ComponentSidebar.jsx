@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ArrowUpRight, Check, ChevronRight, Search, X } from 'lucide-react';
 import inventory from './component-inventory.json';
 import examples from './component-examples.json';
+import { componentHref } from './component-navigation.mjs';
 
 const parts = {
   Popover: ['PopoverRoot', 'PopoverTrigger', 'PopoverContent', 'PopoverClose'],
@@ -26,6 +27,7 @@ export const componentFamilies = Object.fromEntries(Object.entries(inventory).ma
   group, names.filter(name => !childNames.has(name)).map(name => ({ name, parts: parts[name] || [] })),
 ]));
 const common = ['Button', 'Input', 'Select', 'Dialog', 'Table', 'Tabs'];
+const exportCount = Object.values(inventory).flat().length;
 
 export function ComponentSidebar({ groups, selected, query, onQueryChange, onSelect, onShowAll, mobileOpen, onClose }) {
   const [openGroups, setOpenGroups] = useState({ forms: true });
@@ -42,21 +44,26 @@ export function ComponentSidebar({ groups, selected, query, onQueryChange, onSel
   }, [selected, activeGroup]);
 
   const componentLink = (name, className = '') => (
-    <a href={`#${examples[name]}`} className={className} aria-current={selected === name ? 'location' : undefined}
-      data-component-name={name} onClick={() => onSelect(name)} title={name}>
+    <a href={componentHref(name, examples)} className={className} aria-current={selected === name ? 'location' : undefined}
+      data-component-name={name} onClick={event => {
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        window.history.pushState(null, '', componentHref(name, examples));
+        onSelect(name);
+      }} title={name}>
       <span>{name}</span>
     </a>
   );
 
   return <aside className={`gallery-sidebar component-sidebar ${mobileOpen ? 'is-open' : ''}`} id="component-sidebar" role={mobileOpen ? 'dialog' : undefined} aria-modal={mobileOpen ? true : undefined} aria-label="Component navigation">
-    <div className="sidebar-heading">Components <span>123</span><button type="button" className="tree-mobile-close" aria-label="Close component menu" onClick={onClose}><X size={17}/></button></div>
+    <div className="sidebar-heading">Components <span>{exportCount} exports</span><button type="button" className="tree-mobile-close" aria-label="Close component menu" onClick={onClose}><X size={17}/></button></div>
     <label className="gallery-search sidebar-search"><Search size={15} aria-hidden="true"/>
       <input value={query} onChange={event => onQueryChange(event.target.value)} placeholder="Find a component…" aria-label="Find a component"/>
       {query && <button type="button" aria-label="Clear search" onClick={() => onQueryChange('')}><X size={14}/></button>}
     </label>
     <div className="component-nav-scroll">
       <nav aria-label="Components" className="component-tree">
-        <a className="tree-all" href="#site-main" aria-current={!selected && !term ? 'location' : undefined} onClick={onShowAll}>All components <span>123</span></a>
+        <a className="tree-all" href="/components#site-main" aria-current={!selected && !term ? 'location' : undefined} onClick={onShowAll}>All components <span>{exportCount}</span></a>
         {!term && <div className="tree-common"><p className="tree-section-label">Common components</p><ul>{common.map(name => <li key={name}>{componentLink(name)}</li>)}</ul></div>}
         <p className="tree-section-label">Browse library</p>
         <ul className="tree-groups">{groups.map(group => {
@@ -64,7 +71,7 @@ export function ComponentSidebar({ groups, selected, query, onQueryChange, onSel
           if (!families.length) return null;
           const expanded = term ? true : !!openGroups[group.id];
           return <li key={group.id}>
-            <button type="button" className="tree-group-toggle" aria-expanded={expanded} aria-controls={`tree-group-${group.id}`}
+            <button type="button" className="tree-group-toggle" disabled={Boolean(term)} aria-expanded={expanded} aria-controls={`tree-group-${group.id}`}
               onClick={() => setOpenGroups(current => ({ ...current, [group.id]: !expanded }))}>
               <ChevronRight size={13} aria-hidden="true"/><span>{group.label}</span><span className="tree-count">{inventory[group.id].length}</span>
             </button>
@@ -73,7 +80,7 @@ export function ComponentSidebar({ groups, selected, query, onQueryChange, onSel
               const shownParts = term && !matching(family.name) && !matching(group.label) ? family.parts.filter(matching) : family.parts;
               return <li key={family.name}>
                 <div className="tree-family-row">{componentLink(family.name)}{family.parts.length > 0 && <button type="button" className="tree-parts-toggle"
-                  aria-label={`${expandedParts ? 'Hide' : 'Show'} ${family.name} parts`} aria-expanded={expandedParts} aria-controls={`tree-parts-${family.name}`}
+                  disabled={Boolean(term)} aria-label={`${expandedParts ? 'Hide' : 'Show'} ${family.name} parts`} aria-expanded={expandedParts} aria-controls={`tree-parts-${family.name}`}
                   onClick={() => setOpenParts(current => ({ ...current, [family.name]: !expandedParts }))}><ChevronRight size={12} aria-hidden="true"/></button>}</div>
                 {family.parts.length > 0 && <ul id={`tree-parts-${family.name}`} className="tree-parts" hidden={!expandedParts}>{shownParts.map(name => <li key={name}>{componentLink(name)}</li>)}</ul>}
               </li>;

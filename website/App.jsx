@@ -6,6 +6,7 @@ import '../src/theme/styles.css';
 import { ComponentSidebar } from './ComponentSidebar.jsx';
 import inventory from './component-inventory.json';
 import examples from './component-examples.json';
+import { selectionFromLocation, searchExampleIds } from './component-navigation.mjs';
 import './catalog.css';
 import './site.css';
 import './typography.css';
@@ -29,7 +30,7 @@ const groups = [
   { id: 'details', label: 'Detail & configuration', description: 'The opt-in presentation namespace for detail screens.', component: DetailsPanel },
 ];
 const exportCount = Object.values(inventory).flat().length;
-const namesAtHash = () => Object.keys(examples).find(name => examples[name] === window.location.hash.slice(1)) || null;
+const namesAtHash = () => selectionFromLocation(window.location, examples);
 
 function DetailsPanel() {
   const { DescriptionSummary, DescriptionSection, DescriptionItem, ConfigFieldGrid } = presentation;
@@ -115,14 +116,24 @@ function ComponentExplorer() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const toggle = useRef(null);
   const close = () => { setMobileOpen(false); toggle.current?.focus(); };
-  const showAll = () => { setSelected(null); setQuery(''); setMobileOpen(false); };
+  const showAll = event => {
+    if (event?.metaKey || event?.ctrlKey || event?.shiftKey || event?.altKey) return;
+    event?.preventDefault();
+    window.history.pushState(null, '', '/components#site-main');
+    setSelected(null); setQuery(''); setMobileOpen(false);
+  };
   useEffect(() => {
     const media = window.matchMedia('(max-width: 780px)');
     const closeOnDesktop = () => { if (!media.matches) setMobileOpen(false); };
     media.addEventListener('change', closeOnDesktop);
     return () => media.removeEventListener('change', closeOnDesktop);
   }, []);
-  useEffect(() => { const update = () => { const id = window.location.hash.slice(1); setSelected(current => current && examples[current] === id ? current : namesAtHash()); setQuery(''); }; window.addEventListener('hashchange', update); return () => window.removeEventListener('hashchange', update); }, []);
+  useEffect(() => {
+    const update = () => { setSelected(namesAtHash()); setQuery(''); };
+    window.addEventListener('hashchange', update);
+    window.addEventListener('popstate', update);
+    return () => { window.removeEventListener('hashchange', update); window.removeEventListener('popstate', update); };
+  }, []);
   useEffect(() => {
     if (!mobileOpen) return;
     const panel = document.getElementById('component-sidebar');
@@ -140,14 +151,16 @@ function ComponentExplorer() {
     return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = before; };
   }, [mobileOpen]);
   const term = query.trim().toLowerCase();
+  const searchIds = term ? searchExampleIds(query, groups, inventory, examples) : [];
   const visibleGroups = groups.filter(group => selected ? inventory[group.id].includes(selected) : !term || [group.label, ...inventory[group.id]].join(' ').toLowerCase().includes(term));
   const importCode = selected && inventory.details.includes(selected) ? `import { presentation } from '@zanehu-ai/x-ui'\n\nconst { ${selected} } = presentation` : `import { ${selected || 'Button, Input, Select'} } from '@zanehu-ai/x-ui'`;
   return <div className="explorer-page">
     <div className="explorer-mobile-bar"><button ref={toggle} type="button" onClick={() => setMobileOpen(true)} aria-expanded={mobileOpen} aria-controls="component-sidebar"><Menu size={16}/> Components</button><span>{selected || 'All components'}</span></div>
     {mobileOpen && <button className="component-nav-backdrop" type="button" aria-label="Close component navigation" onClick={close}/>}
-    <ComponentSidebar groups={groups} selected={selected} query={query} onQueryChange={value => { setQuery(value); setSelected(null); }} onSelect={name => { setSelected(name); setQuery(''); setMobileOpen(false); }} onShowAll={showAll} mobileOpen={mobileOpen} onClose={close}/>
-    <main id="site-main" tabIndex={-1} className="explorer-main" data-view={selected ? 'single' : 'all'}><div className="explorer-heading"><p className="eyebrow">COMPONENTS / {selected ? visibleGroups[0]?.label.toUpperCase() : 'THE LIBRARY'}</p><h1>{selected || (query ? 'Search results' : 'Find your building blocks.')}</h1><p>{selected ? 'Try the component below. Every example uses sample data and the current source preview.' : 'Explore the components, their parts, and the states between them.'}</p></div>
-      <div className="source-preview-note"><span>0.2.0-rc.0</span><p>Unpublished source preview. <a href="/docs#docs-releases">Release availability <ArrowUpRight size={11}/></a></p></div>
+    <ComponentSidebar groups={groups} selected={selected} query={query} onQueryChange={value => { window.history.replaceState(null, '', '/components'); setQuery(value); setSelected(null); }} onSelect={name => { setSelected(name); setQuery(''); setMobileOpen(false); }} onShowAll={showAll} mobileOpen={mobileOpen} onClose={close}/>
+    <main id="site-main" tabIndex={-1} className="explorer-main" data-view={selected ? 'single' : term ? 'search' : 'all'}><div className="explorer-heading"><p className="eyebrow">COMPONENTS / {selected ? visibleGroups[0]?.label.toUpperCase() : 'THE LIBRARY'}</p><h1>{selected || (query ? 'Search results' : 'Find your building blocks.')}</h1><p>{selected ? 'Try the component below. Every example uses sample data and the current source preview.' : 'Explore the components, their parts, and the states between them.'}</p></div>
+      <div className="source-preview-note"><span>0.2.0-rc.0</span><p>Published prerelease on GitHub Packages. <a href="/docs#docs-releases">Release availability <ArrowUpRight size={11}/></a></p></div>
+      {term && searchIds.length > 0 && <style>{`.explorer-main[data-view="search"] .demo-card:not(:is(${searchIds.map(id => `#${id}`).join(',')})){display:none}`}</style>}
       {selected && <><style>{`.explorer-main[data-view="single"] .demo-card:not(#${examples[selected]}){display:none}`}</style><CopyCode label={inventory.details.includes(selected) ? 'Presentation namespace' : 'Import'}>{importCode}</CopyCode></>}
       {visibleGroups.length === 0 && <div className="gallery-empty"><h2>No components found.</h2><p>Try Button, Select, Dialog, Table, or Chat.</p><button className="hero-secondary" onClick={showAll}>Clear search</button></div>}
       {visibleGroups.map(group => <section className="collection" key={group.id} id={`collection-${group.id}`}><div className="collection-heading"><div><p className="overline">{String(groups.indexOf(group) + 1).padStart(2, '0')} / COLLECTION</p><h2>{group.label}</h2><p>{group.description}</p></div><span className="export-count">{inventory[group.id].length} exports</span></div><Suspense fallback={<p role="status" className="demo-note">Loading examples…</p>}><CollectionContent component={group.component} selected={selected}/></Suspense></section>)}

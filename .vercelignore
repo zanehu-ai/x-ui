@@ -1,0 +1,11 @@
+.playwright-cli/
+output/
+.vercel/
+node_modules/
+website/node_modules/
+dist/
+website/dist/
+.local-packages/
+**/.DS_Store
+**/.env*
+**/.npmrc

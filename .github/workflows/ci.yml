@@ -36,3 +36,12 @@ jobs:
 
       - name: Build and test public package
         run: npm test
+
+      - name: Verify website navigation contracts
+        run: node --test website/component-navigation.test.mjs
+
+      - name: Install locked website dependencies
+        run: npm ci --prefix website --ignore-scripts
+
+      - name: Build website
+        run: npm run --prefix website build
