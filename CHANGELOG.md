@@ -1,6 +1,7 @@
 # Changelog
 
-All notable changes to `@zanehu-ai/synapse-ui` will be documented here.
+All notable changes to `@zanehu-ai/x-ui` will be documented here. Historical
+entries retain the package identity under which they were released.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -23,6 +24,9 @@ approval checkpoints.
 - The `presentation` namespace for retained detail and configuration components.
 
 ### Changed
+- The package identity is `@zanehu-ai/x-ui`; historical `synapse-ui` releases
+  remain unchanged. The RC publishes to the `next` channel after its matching
+  tag is created; stable versions use `latest`.
 - Shared primitives, forms, navigation, chat and presentation blocks use scoped
   monochrome tokens while retaining legacy palette fallbacks outside a provider.
 - Loading buttons keep their visible dimensions and accessible name and prevent
