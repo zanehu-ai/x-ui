@@ -86,6 +86,8 @@ html[data-motion=reduced],html[data-motion=reduced] *,html[data-motion=reduced] 
 .tree-group-toggle[aria-expanded=true]{color:var(--foreground)}
 .tree-group-toggle>svg,.tree-parts-toggle>svg{flex-shrink:0;transition:transform 140ms ease}
 .tree-group-toggle[aria-expanded=true]>svg,.tree-parts-toggle[aria-expanded=true]>svg{transform:rotate(90deg)}
+.component-sidebar nav button:disabled{cursor:default}
+.component-sidebar nav button:disabled>svg{visibility:hidden}
 .component-tree .tree-families{margin:2px 0 10px 11px;padding-left:8px;border-left:1px solid var(--border)}
 .tree-family-row{display:flex;align-items:center;gap:3px}
 .tree-family-row>a{flex:1}

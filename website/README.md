@@ -2,7 +2,9 @@
 
 Official website source for **ui.opcorbit.com**. The website introduces x-ui, provides a searchable component explorer, and documents installation, appearance, motion, and desktop/mobile integration.
 
-The documentation identifies the current library source as **unpublished 0.2.0-rc.0**. Building or deploying this website does not publish the npm package.
+The documentation identifies **@zanehu-ai/x-ui@0.2.0-rc.0** as the published
+GitHub Packages prerelease on the **next** channel, released on October 14, 2026.
+Building or deploying this website does not publish another npm package version.
 
 ## Local development
 
@@ -39,9 +41,21 @@ Use the **x-ui repository root** as the Vercel project root. The repository-root
 
 After deploying a dedicated x-ui project in the OpcOrbit team, attach `ui.opcorbit.com`. Use the project-specific DNS/ownership records returned by Vercel at the authoritative Alibaba DNS provider. Verify DNS and HTTPS before calling the domain live.
 
-No website project or deployment was created in this session. The connected Vercel account returned **403** for the OpcOrbit team, and no authenticated CLI fallback was available. Domain lookup found no A/CNAME for `ui.opcorbit.com`. This is an access/DNS handoff, not a deployed-site status.
+The original design session kept the website local after a **403** from the
+Vercel connector; its DNS observation is historical. The October 14 library
+release published the package independently of this site. Verify the current
+Vercel deployment, DNS and HTTPS before calling `ui.opcorbit.com` live.
+Existing component responsiveness gaps remain documented under `/docs#docs-responsive`.
 
-No library package tag, registry publication, production deployment, or Git push is part of this local result. Existing component responsiveness gaps remain documented under `/docs#docs-responsive`.
+## Component navigation
+
+Component and compound-part links carry an exact `component` query parameter
+alongside the existing example anchor. Refresh and browser history preserve the
+chosen part, and historical anchor-only URLs continue to resolve. Search renders
+only matching composed examples; its automatically expanded groups have disabled
+collapse controls. The sidebar count describes indexed exports, including parts.
+
+Run the navigation contracts with `node --test website/component-navigation.test.mjs`.
 
 ## Verification
 

@@ -268,8 +268,8 @@ export function DocsPage({ initialSection = 'introduction' }) {
           <p className="docs-lead">React components for application interfaces, from everyday controls to data tables, navigation and conversations.</p>
           <p>Import from <code>@zanehu-ai/x-ui</code>. The host application supplies React, styles, routing and data. React and React DOM 18.3 or 19 are supported; check the selected release for its complete peer dependencies.</p>
           <div className="docs-callout" role="note">
-            <strong>Current source preview · 0.2.0-rc.0</strong>
-            <p>This candidate is unpublished. Theme, motion and supporting feedback APIs shown here require a reviewed release that includes them. They are not available in published 0.1.8.</p>
+            <strong>Published prerelease · 0.2.0-rc.0</strong>
+            <p><code>@zanehu-ai/x-ui@0.2.0-rc.0</code> is available on GitHub Packages through the <code>next</code> channel. It includes the theme, motion, feedback and presentation APIs shown here. Validate the prerelease in your application before adoption.</p>
             <a href="#docs-releases" onClick={event => followSection(event, 'releases')}>Understand release availability</a>
           </div>
           <h2>A small starting point</h2>
@@ -284,8 +284,8 @@ export function DocsPage({ initialSection = 'introduction' }) {
           <p>The package is hosted on GitHub Packages. Configure the scope in your application’s <code>.npmrc</code>:</p>
           <CodeBlock label="Registry scope · .npmrc" language="ini">{'@zanehu-ai:registry=https://npm.pkg.github.com'}</CodeBlock>
           <p>Configure authorized <code>read:packages</code> access through private npm user settings or CI, outside this site. Keep credentials out of repository files and browser environment variables.</p>
-          <p>Replace the placeholder with an approved, published version available to your application:</p>
-          <CodeBlock label="Install a reviewed release" language="bash">{"npm install '@zanehu-ai/x-ui@<reviewed-version>'"}</CodeBlock>
+          <p>Install the exact published prerelease to try the APIs shown here:</p>
+          <CodeBlock label="Install the published prerelease" language="bash">{"npm install '@zanehu-ai/x-ui@0.2.0-rc.0'"}</CodeBlock>
           <h3>Include component styles</h3>
           <p>Scan the installed package’s <code>dist/**/*.js</code> with Tailwind. For Tailwind 4, add a source path relative to your application stylesheet:</p>
           <CodeBlock label="Tailwind 4 · application stylesheet" language="css">{'@import "tailwindcss";\n@source "../node_modules/@zanehu-ai/x-ui/dist/**/*.js";'}</CodeBlock>
@@ -293,7 +293,7 @@ export function DocsPage({ initialSection = 'introduction' }) {
         </section>
 
         <section className="docs-section" id="docs-theming" aria-labelledby="docs-theming-title">
-          <p className="docs-eyebrow">Unpublished candidate API</p>
+          <p className="docs-eyebrow">Prerelease API</p>
           <h2 id="docs-theming-title" tabIndex={-1}>Theming</h2>
           <p>Opt in with <code>UIThemeProvider</code> and explicitly import the theme stylesheet. Components outside the provider retain their legacy defaults; the stylesheet alone does not enable a global theme.</p>
           <CodeBlock label="Light, dark and system appearance" language="jsx">{themeExample}</CodeBlock>
@@ -307,7 +307,7 @@ export function DocsPage({ initialSection = 'introduction' }) {
         </section>
 
         <section className="docs-section" id="docs-motion" aria-labelledby="docs-motion-title">
-          <p className="docs-eyebrow">Unpublished candidate API</p>
+          <p className="docs-eyebrow">Prerelease API</p>
           <h2 id="docs-motion-title" tabIndex={-1}>Motion</h2>
           <p>The optional stylesheet adds restrained dialog and menu transitions, plus loading animations. The default <code>motion="auto"</code> honors the operating system’s reduced-motion preference.</p>
           <CodeBlock label="Disable motion for a region" language="jsx">{`import { Button, UIThemeProvider } from '@zanehu-ai/x-ui'
@@ -347,11 +347,11 @@ export function QuietRegion() {
           <p className="docs-eyebrow">Adopt deliberately</p>
           <h2 id="docs-releases-title" tabIndex={-1}>Releases</h2>
           <dl className="docs-property-list">
-            <div><dt>Published 0.1.8</dt><dd>The existing consumer baseline. It does not include the new theme, feedback or <code>presentation</code> APIs documented in the source candidate.</dd></div>
-            <div><dt>0.2.0-rc.0 · unpublished</dt><dd>The current local source candidate. A versioned package artifact can validate a local integration; it is not evidence of a published release or a deployed application.</dd></div>
+            <div><dt>Historical synapse-ui 0.1.8</dt><dd>The published <code>@zanehu-ai/synapse-ui@0.1.8</code> consumer baseline remains unchanged. It does not include the new theme, feedback or <code>presentation</code> APIs. A package named <code>@zanehu-ai/x-ui@0.1.8</code> has not been published.</dd></div>
+            <div><dt>0.2.0-rc.0 · published prerelease</dt><dd><code>@zanehu-ai/x-ui@0.2.0-rc.0</code> was published on October 14, 2026. It is available through the <code>next</code> channel, with an exact version for reproducible installs. Library publication does not establish production acceptance for the consuming application.</dd></div>
           </dl>
           <p>Before adoption, select an approved published release, verify its exports and peer dependencies, then validate the consuming application. Keep existing product behavior and styles until that product explicitly adopts the new theme.</p>
-          <a className="docs-source-link" href="https://github.com/zanehu-ai/x-ui">Explore the repository <ArrowUpRight size={14} aria-hidden="true" /></a>
+          <a className="docs-source-link" href="https://github.com/zanehu-ai/x-ui/releases/tag/v0.2.0-rc.0">View the prerelease <ArrowUpRight size={14} aria-hidden="true" /></a>
         </section>
       </main>
     </div>
