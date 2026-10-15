@@ -10,9 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.0-rc.0] - 2026-10-13
 
-Local release candidate for consumer validation. This version has not been
-published or tagged. Registry publication and consumer release remain separate
-approval checkpoints.
+Release candidate for consumer validation. Tagged `v0.2.0-rc.0` and published
+to GitHub Packages (`npm.pkg.github.com`) under the `next` dist-tag; installing
+it requires npm authentication with a GitHub token that has `read:packages`.
+It is not on the public npm registry. A stable consumer release remains a
+separate approval checkpoint.
 
 ### Added
 - Opt-in `UIThemeProvider` / `useUITheme` with Light, Dark and System appearance,
