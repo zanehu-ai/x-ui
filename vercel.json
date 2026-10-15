@@ -3,5 +3,5 @@
   "installCommand": "npm ci --ignore-scripts && npm --prefix website ci --ignore-scripts",
   "buildCommand": "npm --prefix website run build",
   "outputDirectory": "website/dist",
-  "rewrites": [{"source": "/((?!assets/|favicon.svg|avatar.svg|robots.txt|sitemap.xml).*)", "destination": "/index.html"}]
+  "rewrites": [{"source": "/((?!assets/|favicon.svg|avatar.svg|og-image.png|robots.txt|sitemap.xml).*)", "destination": "/index.html"}]
 }
