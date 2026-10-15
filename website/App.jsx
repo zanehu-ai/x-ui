@@ -159,7 +159,7 @@ function ComponentExplorer() {
     {mobileOpen && <button className="component-nav-backdrop" type="button" aria-label="Close component navigation" onClick={close}/>}
     <ComponentSidebar groups={groups} selected={selected} query={query} onQueryChange={value => { window.history.replaceState(null, '', '/components'); setQuery(value); setSelected(null); }} onSelect={name => { setSelected(name); setQuery(''); setMobileOpen(false); }} onShowAll={showAll} mobileOpen={mobileOpen} onClose={close}/>
     <main id="site-main" tabIndex={-1} className="explorer-main" data-view={selected ? 'single' : term ? 'search' : 'all'}><div className="explorer-heading"><p className="eyebrow">COMPONENTS / {selected ? visibleGroups[0]?.label.toUpperCase() : 'THE LIBRARY'}</p><h1>{selected || (query ? 'Search results' : 'Find your building blocks.')}</h1><p>{selected ? 'Try the component below. Every example uses sample data and the current source preview.' : 'Explore the components, their parts, and the states between them.'}</p></div>
-      <div className="source-preview-note"><span>0.2.0-rc.0</span><p>Published prerelease on GitHub Packages. <a href="/docs#docs-releases">Release availability <ArrowUpRight size={11}/></a></p></div>
+      <div className="source-preview-note"><span>0.2.0</span><p>Public npm release. <a href="/docs#docs-installation">Install guide <ArrowUpRight size={11}/></a></p></div>
       {term && searchIds.length > 0 && <style>{`.explorer-main[data-view="search"] .demo-card:not(:is(${searchIds.map(id => `#${id}`).join(',')})){display:none}`}</style>}
       {selected && <><style>{`.explorer-main[data-view="single"] .demo-card:not(#${examples[selected]}){display:none}`}</style><CopyCode label={inventory.details.includes(selected) ? 'Presentation namespace' : 'Import'}>{importCode}</CopyCode></>}
       {visibleGroups.length === 0 && <div className="gallery-empty"><h2>No components found.</h2><p>Try Button, Select, Dialog, Table, or Chat.</p><button className="hero-secondary" onClick={showAll}>Clear search</button></div>}
@@ -176,7 +176,7 @@ function MotionPage({ motionEnabled, setMotionEnabled, prefersReduced }) {
 }
 
 function Footer() {
-  return <footer className="site-footer"><div className="footer-top"><a className="site-brand" href="/"><span className="wordmark">x-ui<span> / </span></span><span className="wordmark brand-owner">OPCORBIT</span></a><p>Shared foundations.<br/>Room for your own ideas.</p><nav aria-label="Footer navigation"><a href="/components">Components</a><a href="/docs">Documentation</a><a href={repository} target="_blank" rel="noreferrer">GitHub <ArrowUpRight size={12}/></a></nav></div><div className="footer-bottom"><span>x-ui by OpcOrbit</span><span>MIT LICENSE / REACT LIBRARY</span><a href="/docs#docs-releases">Source preview · 0.2.0-rc.0</a></div></footer>;
+  return <footer className="site-footer"><div className="footer-top"><a className="site-brand" href="/"><span className="wordmark">x-ui<span> / </span></span><span className="wordmark brand-owner">OPCORBIT</span></a><p>Shared foundations.<br/>Room for your own ideas.</p><nav aria-label="Footer navigation"><a href="/components">Components</a><a href="/docs">Documentation</a><a href={repository} target="_blank" rel="noreferrer">GitHub <ArrowUpRight size={12}/></a></nav></div><div className="footer-bottom"><span>x-ui by OpcOrbit</span><span>MIT LICENSE / REACT LIBRARY</span><a href="/docs#docs-installation">0.2.0</a></div></footer>;
 }
 
 function Site({ motionEnabled, setMotionEnabled }) {

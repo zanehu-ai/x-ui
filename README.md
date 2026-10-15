@@ -8,7 +8,7 @@ Shared React components, frontend utilities and OpcOrbit API primitives. The rep
 
 ## Local package-name migration
 
-The `@zanehu-ai/x-ui` identity is published on GitHub Packages as the `0.2.0-rc.0` prerelease (`next` dist-tag); installing it requires npm authentication to `npm.pkg.github.com` with a GitHub token that has `read:packages`. Console uses the local `0.2.0-rc.0` candidate. Core and Cargo retain the released `0.1.8` implementation through an identity-only compatibility repack; this does not upgrade their UI or API behavior.
+The public package is `@zanehu-ai/x-ui` on the npm registry. Version **0.2.0** is prepared for the `latest` dist-tag and installs with `npm i @zanehu-ai/x-ui` and no token once the `v0.2.0` tag is published. The earlier `0.2.0-rc.0` prerelease remains on GitHub Packages under `next` and still requires a GitHub token; it is not the public install path. Console uses the local `0.2.0-rc.0` candidate. Core and Cargo retain the released `0.1.8` implementation through an identity-only compatibility repack; this does not upgrade their UI or API behavior.
 
 ```bash
 node scripts/prepare-compat-package.mjs --destination /path/to/consumer/.local-packages
@@ -20,22 +20,17 @@ Without `--source`, the script fetches original `@zanehu-ai/synapse-ui@0.1.8` us
 
 ## Install in an application
 
-Configure the package scope in the application's `.npmrc`:
-
-```ini
-@zanehu-ai:registry=https://npm.pkg.github.com
-```
-
-Use authorized GitHub Packages access through private user or CI configuration. Keep credentials out of repository files and browser environment variables. Select a reviewed release rather than assuming that every API in this checkout is available from the registry:
+`@zanehu-ai/x-ui` is a public package on the npm registry. No GitHub token and no `.npmrc` scope override are required.
 
 ```bash
-# Replace <reviewed-version> with the release your application will use.
-npm install @zanehu-ai/x-ui@<reviewed-version>
+npm i @zanehu-ai/x-ui
+pnpm add @zanehu-ai/x-ui
+yarn add @zanehu-ai/x-ui
 ```
 
-The manifest currently declares the **`0.2.0-rc.0` release candidate**, published on GitHub Packages under the `next` dist-tag. Install it with `npm install @zanehu-ai/x-ui@0.2.0-rc.0` after configuring npm authentication to `npm.pkg.github.com` with a GitHub token (`read:packages`); it is not on the public npm registry. The `presentation` namespace in this source is absent from the recorded `v0.1.8` source tag; its adoption requires a release that includes it. See [consumer migration](#consumer-migration-after-release).
+Plain `npm i` installs the `latest` dist-tag. This repository's version is **0.2.0**, which publishes to `latest` when the `v0.2.0` tag is pushed. Until that tag is published, the public registry has no installable version. The `0.2.0-rc.0` prerelease on GitHub Packages (`next`) is a separate artifact and is not what `npm i` installs.
 
-The theme and feedback APIs below are included in this **release candidate**, `0.2.0-rc.0`, published on GitHub Packages (token required). They are not available in the earlier `0.1.8` package. A versioned `npm pack` artifact can validate a local consumer preview; shipping adoption requires an approved published release that includes them.
+The `presentation` namespace and the theme and feedback APIs below are part of 0.2.0. They are absent from the recorded `v0.1.8` package. See [consumer migration](#consumer-migration-after-release). A versioned `npm pack` artifact can validate a local consumer preview; shipping adoption uses the approved published release.
 
 ### Application requirements
 
@@ -50,7 +45,7 @@ The consuming app supplies the peer dependencies declared in [package.json](pack
 | Zustand | `^5.0.0` |
 | Lucide React | `>=0.300.0` |
 
-Components use Tailwind utility classes. Include the installed package's `dist/**/*.js` in the application's Tailwind source scan. The unreleased theme additions provide an optional `dist/theme/styles.css` stylesheet for scoped theme surfaces and motion; it does not replace the Tailwind scan or generated component styles. The package does not automatically configure the host's providers, routing or authentication.
+Components use Tailwind utility classes. Include the installed package's `dist/**/*.js` in the application's Tailwind source scan. Version 0.2.0 provides an optional `dist/theme/styles.css` stylesheet for scoped theme surfaces and motion; it does not replace the Tailwind scan or generated component styles. The package does not automatically configure the host's providers, routing or authentication.
 
 ## Usage
 
@@ -70,7 +65,7 @@ export function SaveCard() {
 
 Import only APIs present in the release you install. Root exports and existing deep module paths are compatibility contracts; repository moves do not rename them.
 
-## Opt-in theme and motion (unreleased)
+## Opt-in theme and motion
 
 Import the optional stylesheet explicitly at the application entry and wrap the
 area that should adopt the theme. Existing components retain their legacy
@@ -147,7 +142,7 @@ animations. `motion="off"` and OS reduced motion stop these animations without
 removing content or changing component positioning. The host must still scan
 `dist/**/*.js` with Tailwind.
 
-## Feedback and supporting controls (unreleased)
+## Feedback and supporting controls
 
 These additive root exports use theme variables when a provider is present and
 have fallback styles when it is absent. Use the optional stylesheet above for
@@ -193,7 +188,7 @@ application; these controls only display the supplied state.
 | [src/chat](src/chat/) | Conversation/message components and chat translations |
 | [src/opcorbit](src/opcorbit/) | Control/domain API primitives, query keys, schemas and permission contracts |
 | [src/presentation](src/presentation/) | Opt-in compatibility components for detail and configuration screens |
-| [src/theme](src/theme/) | Opt-in light/dark/system provider, scoped palette variables and optional motion CSS (unreleased) |
+| [src/theme](src/theme/) | Opt-in light/dark/system provider, scoped palette variables and optional motion CSS |
 | [tests](tests/) | Built-package export and behavior checks |
 
 `createClient` has two modes: basic options return an Axios instance; supplying both `getToken` and `onUnauthorized` returns a typed wrapper with auth and response-envelope handling. See [the overloads and options](src/api/createClient.ts) before changing a consumer.
@@ -213,7 +208,7 @@ npm run build      # Rebuilds JS/declarations and fixes distribution import path
 
 ## Releases
 
-The [publish workflow](.github/workflows/publish.yml) runs for pushed `v*` tags, builds through the npm lifecycle, typechecks and publishes to GitHub Packages. Coordinate version/tag changes and consumer upgrades after verification. A source commit or local package build is not evidence that the corresponding package has been published. See [CHANGELOG.md](CHANGELOG.md) for recorded release history.
+The [publish workflow](.github/workflows/publish.yml) runs for pushed `v*` tags. It checks that the tag matches `package.json`, builds through the npm lifecycle, typechecks, and publishes to the public npm registry (`https://registry.npmjs.org`) with provenance. Prerelease versions (a hyphen in the version) use the `next` dist-tag. Other versions use `latest`. The workflow authenticates with the `NPM_TOKEN` repository secret. Coordinate version and tag changes after verification. A source commit or local package build is not evidence that the corresponding package has been published. See [CHANGELOG.md](CHANGELOG.md) for recorded release history.
 
 For the current local release candidate, create the preview artifact without a
 tag or registry write:
@@ -225,7 +220,7 @@ mkdir -p /tmp/x-console-theme-package
 npm pack --pack-destination /tmp/x-console-theme-package
 ```
 
-The output is `zanehu-ai-x-ui-0.2.0-rc.0.tgz`. Consumer previews may install
+The output is `zanehu-ai-x-ui-0.2.0.tgz`. Consumer previews may install
 that tarball temporarily. Do not commit a machine-specific tarball dependency;
 replace it with the approved published version before release. Package
 publication, tagging, deployment and production acceptance are not implied by

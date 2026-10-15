@@ -35,9 +35,11 @@ make clean        # 清理产物
 ```
 
 ## 发布
-推送 tag 触发 GitHub Actions 自动发布到 GitHub Packages npm：
+推送 `v*` tag 触发 GitHub Actions 发布到公有 npm（`registry.npmjs.org`，`access: public`）。
+工作流使用仓库 secret `NPM_TOKEN`，并带 `--provenance`。版本号含 `-` 时 dist-tag 为 `next`，否则为 `latest`。
+未获批准不要打 tag，也不要执行 `npm publish`。GitHub Packages 不再是后续发布目标。
 ```bash
-npm version patch   # 或 minor / major
+npm version patch   # 或 minor / major；不要在未批准时推送 tag
 git push origin main --tags
 ```
 
