@@ -1,12 +1,14 @@
 # x-ui
 
+x-ui is an open-source React component library, MIT licensed, built on [shadcn/ui](https://ui.shadcn.com) (v4, new-york) patterns and [Radix UI](https://www.radix-ui.com) primitives. It offers 123 visual component exports and aliases in 7 collections (theme and feedback, buttons and forms, data and display, dialogs and menus, navigation and layout, chat, detail and configuration), with light, dark and system appearance. Browse the live components and docs at [ui.opcorbit.com](https://ui.opcorbit.com).
+
 Shared React components, frontend utilities and OpcOrbit API primitives. The repository is `x-ui`; the npm package is now **`@zanehu-ai/x-ui`**.
 
 [package.json](package.json) defines dependencies and build scripts; [src/index.ts](src/index.ts) defines the root API. Source lives in `src/` and the package ships compiled JavaScript and declarations in `dist/`. This library has no standalone application or development server.
 
 ## Local package-name migration
 
-The new `@zanehu-ai/x-ui` identity is unpublished. Console uses the local `0.2.0-rc.0` candidate. Core and Cargo retain the released `0.1.8` implementation through an identity-only compatibility repack; this does not upgrade their UI or API behavior.
+The `@zanehu-ai/x-ui` identity is published on GitHub Packages as the `0.2.0-rc.0` prerelease (`next` dist-tag); installing it requires npm authentication to `npm.pkg.github.com` with a GitHub token that has `read:packages`. Console uses the local `0.2.0-rc.0` candidate. Core and Cargo retain the released `0.1.8` implementation through an identity-only compatibility repack; this does not upgrade their UI or API behavior.
 
 ```bash
 node scripts/prepare-compat-package.mjs --destination /path/to/consumer/.local-packages
@@ -31,9 +33,9 @@ Use authorized GitHub Packages access through private user or CI configuration. 
 npm install @zanehu-ai/x-ui@<reviewed-version>
 ```
 
-The manifest currently declares the **unpublished `0.2.0-rc.0` release candidate**. The `presentation` namespace in this source is absent from the recorded `v0.1.8` source tag; its adoption requires a release that includes it. See [consumer migration](#consumer-migration-after-release).
+The manifest currently declares the **`0.2.0-rc.0` release candidate**, published on GitHub Packages under the `next` dist-tag. Install it with `npm install @zanehu-ai/x-ui@0.2.0-rc.0` after configuring npm authentication to `npm.pkg.github.com` with a GitHub token (`read:packages`); it is not on the public npm registry. The `presentation` namespace in this source is absent from the recorded `v0.1.8` source tag; its adoption requires a release that includes it. See [consumer migration](#consumer-migration-after-release).
 
-The theme and feedback APIs below are included in this **unpublished release candidate**. Their presence in this checkout or a local package build does not make them available in the published `0.1.8` package. A versioned `npm pack` artifact can validate a local consumer preview; shipping adoption requires an approved published release that includes them.
+The theme and feedback APIs below are included in this **release candidate**, `0.2.0-rc.0`, published on GitHub Packages (token required). They are not available in the earlier `0.1.8` package. A versioned `npm pack` artifact can validate a local consumer preview; shipping adoption requires an approved published release that includes them.
 
 ### Application requirements
 
