@@ -2,9 +2,13 @@
 
 Official website source for **ui.opcorbit.com**. The website introduces x-ui, provides a searchable component explorer, and documents installation, appearance, motion, and desktop/mobile integration.
 
-The documentation identifies **@zanehu-ai/x-ui@0.2.0-rc.0** as the published
-GitHub Packages prerelease on the **next** channel, released on October 14, 2026.
-Building or deploying this website does not publish another npm package version.
+The documentation identifies **@zanehu-ai/x-ui@0.2.0** as the public npm
+release on the **latest** channel. Install it with `npm i @zanehu-ai/x-ui`
+(or `pnpm add` / `yarn add`). No GitHub token or `.npmrc` scope override is
+required. The version is published when the `v0.2.0` tag is pushed; building
+or deploying this website does not publish the package. The October 14, 2026
+`0.2.0-rc.0` prerelease remains on GitHub Packages under `next` and is not
+the public install path.
 
 ## Local development
 

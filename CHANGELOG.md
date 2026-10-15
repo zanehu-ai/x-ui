@@ -8,6 +8,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - Unreleased
+
+Stable version prepared for the first public publish. This commit does not
+create a tag and does not publish. After approval, tag `v0.2.0` to publish
+to `registry.npmjs.org` with dist-tag `latest`, so `npm i @zanehu-ai/x-ui`
+installs this version without a token.
+
+Show HN is scheduled for 2026-10-20. A prerelease published only as `next`
+would not satisfy a plain `npm i`, which resolves `latest`.
+
+### Changed
+- Publish target is the public npm registry (`https://registry.npmjs.org`)
+  with `access: public`. The repository `.npmrc` no longer sends the
+  `@zanehu-ai` scope to GitHub Packages.
+- GitHub Packages is not a forward publish destination. The existing
+  `0.2.0-rc.0` artifact on `npm.pkg.github.com` (`next`, 2026-10-14) stays
+  where it is and still requires a GitHub token.
+- Public package metadata: `description`, `homepage`, `bugs`, `keywords`,
+  `repository`, `sideEffects`, and an `exports` map for the root entry,
+  `package.json`, the theme stylesheet, and existing `dist/*` paths.
+- `v*` tags publish with `npm publish --provenance --access public`.
+  Prerelease versions use dist-tag `next`; every other version uses `latest`.
+  The workflow reads the `NPM_TOKEN` Actions secret.
+
+### Promoted
+- 0.2.0 promotes the `0.2.0-rc.0` candidate to the default channel. Theme,
+  feedback, and `presentation` behavior is the candidate's; see that entry.
+
 ## [0.2.0-rc.0] - 2026-10-13
 
 Release candidate for consumer validation. Tagged `v0.2.0-rc.0` and published
@@ -75,5 +103,6 @@ not see further releases).
 
 Last release under `@techfitmaster/synapse-ui`; no further updates planned.
 
+[0.2.0]: https://github.com/zanehu-ai/x-ui/releases/tag/v0.2.0
 [0.1.8]: https://github.com/zanehu-ai/synapse-ui/releases/tag/v0.1.8
 [0.1.6]: https://github.com/zanehu-ai/synapse-ui/releases/tag/v0.1.6

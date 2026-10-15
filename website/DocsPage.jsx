@@ -268,8 +268,8 @@ export function DocsPage({ initialSection = 'introduction' }) {
           <p className="docs-lead">React components for application interfaces, from everyday controls to data tables, navigation and conversations.</p>
           <p>Import from <code>@zanehu-ai/x-ui</code>. The host application supplies React, styles, routing and data. React and React DOM 18.3 or 19 are supported; check the selected release for its complete peer dependencies.</p>
           <div className="docs-callout" role="note">
-            <strong>Published prerelease · 0.2.0-rc.0</strong>
-            <p><code>@zanehu-ai/x-ui@0.2.0-rc.0</code> is available on GitHub Packages through the <code>next</code> channel. It includes the theme, motion, feedback and presentation APIs shown here. Validate the prerelease in your application before adoption.</p>
+            <strong>Public release · 0.2.0</strong>
+            <p><code>@zanehu-ai/x-ui</code> installs from the public npm registry on the <code>latest</code> tag. No token and no <code>.npmrc</code> scope override. It includes the theme, motion, feedback and presentation APIs shown here.</p>
             <a href="#docs-releases" onClick={event => followSection(event, 'releases')}>Understand release availability</a>
           </div>
           <h2>A small starting point</h2>
@@ -281,11 +281,11 @@ export function DocsPage({ initialSection = 'introduction' }) {
         <section className="docs-section" id="docs-installation" aria-labelledby="docs-installation-title">
           <p className="docs-eyebrow">Get started</p>
           <h2 id="docs-installation-title" tabIndex={-1}>Installation</h2>
-          <p>The package is hosted on GitHub Packages. Configure the scope in your application’s <code>.npmrc</code>:</p>
-          <CodeBlock label="Registry scope · .npmrc" language="ini">{'@zanehu-ai:registry=https://npm.pkg.github.com'}</CodeBlock>
-          <p>Configure authorized <code>read:packages</code> access through private npm user settings or CI, outside this site. Keep credentials out of repository files and browser environment variables.</p>
-          <p>Install the exact published prerelease to try the APIs shown here:</p>
-          <CodeBlock label="Install the published prerelease" language="bash">{"npm install '@zanehu-ai/x-ui@0.2.0-rc.0'"}</CodeBlock>
+          <p>Install from the public npm registry. A GitHub token is not required, and the application does not need an <code>.npmrc</code> scope override.</p>
+          <CodeBlock label="Install @zanehu-ai/x-ui" language="bash">{`npm i @zanehu-ai/x-ui
+pnpm add @zanehu-ai/x-ui
+yarn add @zanehu-ai/x-ui`}</CodeBlock>
+          <p>Plain <code>npm i</code> resolves the <code>latest</code> dist-tag. The public version is 0.2.0, published when the <code>v0.2.0</code> tag is pushed. Until that publish, the registry has no installable version.</p>
           <h3>Include component styles</h3>
           <p>Scan the installed package’s <code>dist/**/*.js</code> with Tailwind. For Tailwind 4, add a source path relative to your application stylesheet:</p>
           <CodeBlock label="Tailwind 4 · application stylesheet" language="css">{'@import "tailwindcss";\n@source "../node_modules/@zanehu-ai/x-ui/dist/**/*.js";'}</CodeBlock>
@@ -293,7 +293,7 @@ export function DocsPage({ initialSection = 'introduction' }) {
         </section>
 
         <section className="docs-section" id="docs-theming" aria-labelledby="docs-theming-title">
-          <p className="docs-eyebrow">Prerelease API</p>
+          <p className="docs-eyebrow">Appearance</p>
           <h2 id="docs-theming-title" tabIndex={-1}>Theming</h2>
           <p>Opt in with <code>UIThemeProvider</code> and explicitly import the theme stylesheet. Components outside the provider retain their legacy defaults; the stylesheet alone does not enable a global theme.</p>
           <CodeBlock label="Light, dark and system appearance" language="jsx">{themeExample}</CodeBlock>
@@ -307,7 +307,7 @@ export function DocsPage({ initialSection = 'introduction' }) {
         </section>
 
         <section className="docs-section" id="docs-motion" aria-labelledby="docs-motion-title">
-          <p className="docs-eyebrow">Prerelease API</p>
+          <p className="docs-eyebrow">Optional stylesheet</p>
           <h2 id="docs-motion-title" tabIndex={-1}>Motion</h2>
           <p>The optional stylesheet adds restrained dialog and menu transitions, plus loading animations. The default <code>motion="auto"</code> honors the operating system’s reduced-motion preference.</p>
           <CodeBlock label="Disable motion for a region" language="jsx">{`import { Button, UIThemeProvider } from '@zanehu-ai/x-ui'
@@ -348,10 +348,11 @@ export function QuietRegion() {
           <h2 id="docs-releases-title" tabIndex={-1}>Releases</h2>
           <dl className="docs-property-list">
             <div><dt>Historical synapse-ui 0.1.8</dt><dd>The published <code>@zanehu-ai/synapse-ui@0.1.8</code> consumer baseline remains unchanged. It does not include the new theme, feedback or <code>presentation</code> APIs. A package named <code>@zanehu-ai/x-ui@0.1.8</code> has not been published.</dd></div>
-            <div><dt>0.2.0-rc.0 · published prerelease</dt><dd><code>@zanehu-ai/x-ui@0.2.0-rc.0</code> was published on October 14, 2026. It is available through the <code>next</code> channel, with an exact version for reproducible installs. Library publication does not establish production acceptance for the consuming application.</dd></div>
+            <div><dt>0.2.0 · public npm</dt><dd><code>@zanehu-ai/x-ui@0.2.0</code> is the public release on <code>registry.npmjs.org</code>, dist-tag <code>latest</code>. It is published by the <code>v0.2.0</code> tag. <code>npm i @zanehu-ai/x-ui</code> installs that tag and does not need a token. Until the tag is pushed, the public registry has no installable version.</dd></div>
+            <div><dt>0.2.0-rc.0 · GitHub Packages prerelease</dt><dd>Published on October 14, 2026 to GitHub Packages under <code>next</code>. That copy still requires a GitHub token and is not the public install path.</dd></div>
           </dl>
           <p>Before adoption, select an approved published release, verify its exports and peer dependencies, then validate the consuming application. Keep existing product behavior and styles until that product explicitly adopts the new theme.</p>
-          <a className="docs-source-link" href="https://github.com/zanehu-ai/x-ui/releases/tag/v0.2.0-rc.0">View the prerelease <ArrowUpRight size={14} aria-hidden="true" /></a>
+          <a className="docs-source-link" href="https://github.com/zanehu-ai/x-ui/blob/main/CHANGELOG.md">Read the changelog <ArrowUpRight size={14} aria-hidden="true" /></a>
         </section>
       </main>
     </div>
