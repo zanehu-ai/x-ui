@@ -1,5 +1,12 @@
 # x-ui
 
+<details>
+<summary>简体中文简介（点击展开）</summary>
+
+`x-ui`（`@zanehu-ai/x-ui`，MIT 协议）是基于 `shadcn/ui` 与 `Radix UI` 构建的 **React / TypeScript 企业级组件与 AI 交互原语库**，包含 7 大分组、123 项导出组件（覆盖数据表、弹窗菜单、AI 对话消息流、详单配置展示块及深浅/系统自适应主题 `UIThemeProvider`），并内置类型安全的 Axios 客户端与 Zustand 鉴权 Store 工厂。在线组件预览见 [ui.opcorbit.com](https://ui.opcorbit.com)。
+
+</details>
+
 Production React & TypeScript component library (**`@zanehu-ai/x-ui`**, MIT licensed) built on [shadcn/ui](https://ui.shadcn.com) (v4, new-york) patterns and [Radix UI](https://www.radix-ui.com) primitives. It ships **123 visual component exports and aliases across 7 collections**, AI conversation UI primitives, an opt-in theme/motion provider (light, dark, system), and typed API/domain helpers. Browse the live components and docs at [ui.opcorbit.com](https://ui.opcorbit.com).
 
 ## Architecture Highlights
