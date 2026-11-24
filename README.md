@@ -1,8 +1,12 @@
 # x-ui
 
-x-ui is an open-source React component library, MIT licensed, built on [shadcn/ui](https://ui.shadcn.com) (v4, new-york) patterns and [Radix UI](https://www.radix-ui.com) primitives. It offers 123 visual component exports and aliases in 7 collections (theme and feedback, buttons and forms, data and display, dialogs and menus, navigation and layout, chat, detail and configuration), with light, dark and system appearance. Browse the live components and docs at [ui.opcorbit.com](https://ui.opcorbit.com).
+Production React & TypeScript component library (**`@zanehu-ai/x-ui`**, MIT licensed) built on [shadcn/ui](https://ui.shadcn.com) (v4, new-york) patterns and [Radix UI](https://www.radix-ui.com) primitives. It ships **123 visual component exports and aliases across 7 collections**, AI conversation UI primitives, an opt-in theme/motion provider (light, dark, system), and typed API/domain helpers. Browse the live components and docs at [ui.opcorbit.com](https://ui.opcorbit.com).
 
-Shared React components, frontend utilities and OpcOrbit API primitives. The repository is `x-ui`; the npm package is now **`@zanehu-ai/x-ui`**.
+## Architecture Highlights
+
+- **7 Component Collections**: Theme and feedback, buttons and forms, data tables and display, dialogs and menus, navigation and layout, AI chat UI, and detail/configuration presentation blocks.
+- **AI Conversation & Typed Client Primitives**: Built-in chat/conversation UI module (`src/chat`), typed Axios client and Zustand auth-store factories (`src/api`, `src/store`), and shared query/schema/permission contracts (`src/opcorbit`).
+- **Accessible & Zero-Side-Effect Adoption**: Radix UI primitives, `UIThemeProvider` with scoped portal propagation, OS `prefers-reduced-motion` support, and backwards-compatible `presentation` exports.
 
 [package.json](package.json) defines dependencies and build scripts; [src/index.ts](src/index.ts) defines the root API. Source lives in `src/` and the package ships compiled JavaScript and declarations in `dist/`. This library has no standalone application or development server.
 
