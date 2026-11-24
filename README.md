@@ -1,5 +1,10 @@
 # x-ui
 
+[![CI](https://github.com/zanehu-ai/x-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/zanehu-ai/x-ui/actions/workflows/ci.yml)
+![Live Docs](https://img.shields.io/badge/docs-ui.opcorbit.com-111111?style=flat)
+![Exports: 123](https://img.shields.io/badge/exports-123_components-111111?style=flat)
+![License: MIT](https://img.shields.io/badge/license-MIT-111111?style=flat)
+
 <details>
 <summary>简体中文简介（点击展开）</summary>
 
@@ -17,17 +22,21 @@ Production React & TypeScript component library (**`@zanehu-ai/x-ui`**, MIT lice
 
 [package.json](package.json) defines dependencies and build scripts; [src/index.ts](src/index.ts) defines the root API. Source lives in `src/` and the package ships compiled JavaScript and declarations in `dist/`. This library has no standalone application or development server.
 
-## Local package-name migration
+## Quick Usage
 
-The `@zanehu-ai/x-ui` identity is published on GitHub Packages as the `0.2.0-rc.0` prerelease (`next` dist-tag); installing it requires npm authentication to `npm.pkg.github.com` with a GitHub token that has `read:packages`. Console uses the local `0.2.0-rc.0` candidate. Core and Cargo retain the released `0.1.8` implementation through an identity-only compatibility repack; this does not upgrade their UI or API behavior.
+```tsx
+import { Button, Card, CardContent } from '@zanehu-ai/x-ui'
 
-```bash
-node scripts/prepare-compat-package.mjs --destination /path/to/consumer/.local-packages
-# Offline alternative, using an intact installed original package:
-node scripts/prepare-compat-package.mjs --destination /path/to/consumer/.local-packages --source /path/to/original/synapse-ui
+export function SaveCard() {
+  return (
+    <Card>
+      <CardContent>
+        <Button type="submit">Save changes</Button>
+      </CardContent>
+    </Card>
+  )
+}
 ```
-
-Without `--source`, the script fetches original `@zanehu-ai/synapse-ui@0.1.8` using existing npm credentials and validates its recorded registry integrity. With an explicit directory, provenance records that archive integrity was not independently verified. Both paths copy all `dist` files unchanged, rename only package metadata, and write a local provenance file with every dist hash and the new artifact integrity. Consumers must prepare these ignored artifacts before frozen installation. Registry publication and replacement of local overrides remain a separate authorized release.
 
 ## Install in an application
 
@@ -62,22 +71,6 @@ The consuming app supplies the peer dependencies declared in [package.json](pack
 | Lucide React | `>=0.300.0` |
 
 Components use Tailwind utility classes. Include the installed package's `dist/**/*.js` in the application's Tailwind source scan. The unreleased theme additions provide an optional `dist/theme/styles.css` stylesheet for scoped theme surfaces and motion; it does not replace the Tailwind scan or generated component styles. The package does not automatically configure the host's providers, routing or authentication.
-
-## Usage
-
-```tsx
-import { Button, Card, CardContent } from '@zanehu-ai/x-ui'
-
-export function SaveCard() {
-  return (
-    <Card>
-      <CardContent>
-        <Button type="submit">Save changes</Button>
-      </CardContent>
-    </Card>
-  )
-}
-```
 
 Import only APIs present in the release you install. Root exports and existing deep module paths are compatibility contracts; repository moves do not rename them.
 
@@ -338,3 +331,20 @@ with the host.
 
 Run `npm test` to build the published entry and exercise the presentation
 contracts, including the unchanged root defaults, with Node's test runner.
+
+## Legacy migration notes
+
+<details>
+<summary>Local package-name migration (compatibility repack from `@zanehu-ai/synapse-ui@0.1.8`)</summary>
+
+The `@zanehu-ai/x-ui` identity is published on GitHub Packages as the `0.2.0-rc.0` prerelease (`next` dist-tag); installing it requires npm authentication to `npm.pkg.github.com` with a GitHub token that has `read:packages`. Console uses the local `0.2.0-rc.0` candidate. Core and Cargo retain the released `0.1.8` implementation through an identity-only compatibility repack; this does not upgrade their UI or API behavior.
+
+```bash
+node scripts/prepare-compat-package.mjs --destination /path/to/consumer/.local-packages
+# Offline alternative, using an intact installed original package:
+node scripts/prepare-compat-package.mjs --destination /path/to/consumer/.local-packages --source /path/to/original/synapse-ui
+```
+
+Without `--source`, the script fetches original `@zanehu-ai/synapse-ui@0.1.8` using existing npm credentials and validates its recorded registry integrity. With an explicit directory, provenance records that archive integrity was not independently verified. Both paths copy all `dist` files unchanged, rename only package metadata, and write a local provenance file with every dist hash and the new artifact integrity. Consumers must prepare these ignored artifacts before frozen installation. Registry publication and replacement of local overrides remain a separate authorized release.
+
+</details>
